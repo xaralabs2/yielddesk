@@ -85,6 +85,12 @@ router.get("/decision", requireAuth, async (req, res): Promise<void> => {
 
   const portfolioData = await getPortfolioData(req.user!.userId);
 
+  const availableDeals = await db
+    .select()
+    .from(dealsTable)
+    .orderBy(desc(dealsTable.createdAt))
+    .limit(20);
+
   const cpRate = latestSignal?.cpRate ?? 15;
   const bondYield = latestSignal?.bondYield ?? 14;
 
@@ -92,6 +98,12 @@ router.get("/decision", requireAuth, async (req, res): Promise<void> => {
     cpRate,
     bondYield,
     totalCapital: portfolioData.totalCapital || 10000000,
+    availableDeals: availableDeals.map((d) => ({
+      issuer: d.issuer,
+      rate: d.rate,
+      tenorDays: d.tenorDays,
+      riskLevel: d.riskLevel,
+    })),
   });
 
   res.json(GetDecisionResponse.parse(decision));
@@ -127,10 +139,22 @@ router.get("/dashboard/summary", requireAuth, async (req, res): Promise<void> =>
   const cpRate = latestSignal?.cpRate ?? 15;
   const bondYield = latestSignal?.bondYield ?? 14;
 
+  const recentDeals = await db
+    .select()
+    .from(dealsTable)
+    .orderBy(desc(dealsTable.createdAt))
+    .limit(20);
+
   const decision = evaluateDecision({
     cpRate,
     bondYield,
     totalCapital: portfolioData.totalCapital || 10000000,
+    availableDeals: recentDeals.map((d) => ({
+      issuer: d.issuer,
+      rate: d.rate,
+      tenorDays: d.tenorDays,
+      riskLevel: d.riskLevel,
+    })),
   });
 
   const [unreadResult] = await db
@@ -152,12 +176,6 @@ router.get("/dashboard/summary", requireAuth, async (req, res): Promise<void> =>
       )
     );
 
-  const recentDeals = await db
-    .select()
-    .from(dealsTable)
-    .orderBy(desc(dealsTable.createdAt))
-    .limit(5);
-
   const signal = latestSignal || { id: 0, cpRate: 15, bondYield: 14, createdAt: new Date() };
 
   res.json(GetDashboardSummaryResponse.parse({
@@ -173,7 +191,7 @@ router.get("/dashboard/summary", requireAuth, async (req, res): Promise<void> =>
     analytics,
     unreadAlerts: unreadResult?.count ?? 0,
     maturingSoonCount: maturingResult?.count ?? 0,
-    recentDeals,
+    recentDeals: recentDeals.slice(0, 5),
   }));
 });
 
