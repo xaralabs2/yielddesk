@@ -292,7 +292,7 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
         <Input id="asset-name" placeholder="e.g. Money Market Fund" value={asset} onChange={(e) => setAsset(e.target.value)} data-testid="input-asset-name" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="asset-ticker">Ticker {isEquity ? "" : "(optional)"}</Label>
+        <Label htmlFor="asset-ticker">Ticker {isEquityPillar ? "" : "(optional)"}</Label>
         <Input id="asset-ticker" placeholder="e.g. GTCO" value={ticker} onChange={(e) => setTicker(e.target.value)} data-testid="input-asset-ticker" />
       </div>
       <div className="space-y-2">
