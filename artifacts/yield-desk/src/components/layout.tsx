@@ -67,7 +67,7 @@ export function Sidebar() {
     { href: "/holdings", label: "Holdings", icon: WalletCards },
     { href: "/deals", label: "Deals", icon: LineChart },
     { href: "/market-data", label: "Market Data", icon: Landmark },
-    { href: "/mm-rates", label: "MM Rates", icon: Coins },
+    { href: "/mm-rates", label: "Rates", icon: Coins },
     { href: "/signals", label: "Signals", icon: Activity },
     { 
       href: "/alerts", 
