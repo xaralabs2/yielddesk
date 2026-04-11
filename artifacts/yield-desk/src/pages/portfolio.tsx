@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { useGetPortfolioSummary, useGetPortfolioAnalytics } from "@workspace/api-client-react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useGetPortfolioSummary, useGetPortfolioAnalytics, getGetPortfolioSummaryQueryKey, getGetPortfolioAnalyticsQueryKey } from "@workspace/api-client-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   Briefcase,
@@ -27,8 +26,6 @@ import {
   Trash2,
   Upload,
   Settings,
-  Building2,
-  DollarSign,
   BarChart3,
   Receipt,
   Wallet,
@@ -775,8 +772,8 @@ export default function PortfolioPage() {
 
   const refreshAll = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/portfolio-summary"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/portfolio-analytics"] });
+    queryClient.invalidateQueries({ queryKey: getGetPortfolioSummaryQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetPortfolioAnalyticsQueryKey() });
   }, [queryClient]);
 
   if (summaryLoading || analyticsLoading) {
@@ -804,8 +801,8 @@ export default function PortfolioPage() {
     );
   }
 
-  const hasPillarData = pillarData && pillarData.pillars && pillarData.pillars.length > 0;
-  const hasPillarHoldings = hasPillarData && pillarData.holdings && pillarData.holdings.length > 0;
+  const hasPillarHoldings = pillarData && pillarData.holdings && pillarData.holdings.length > 0;
+  const hasPillarData = hasPillarHoldings;
   const totalCosts = (pillarData?.totalCommissions ?? 0) + (pillarData?.totalFees ?? 0) + (pillarData?.totalTaxes ?? 0);
 
   return (
@@ -1074,7 +1071,20 @@ export default function PortfolioPage() {
         </Card>
       </div>
 
-      {!hasPillarData && (
+      {pillarError && (
+        <Card className="border-destructive/50" data-testid="card-pillar-error">
+          <CardContent className="py-6 text-center">
+            <AlertTriangle className="w-6 h-6 mx-auto text-destructive mb-2" />
+            <h3 className="text-sm font-semibold mb-1">Failed to load 3-pillar data</h3>
+            <p className="text-xs text-muted-foreground mb-3">Portfolio engine data could not be fetched.</p>
+            <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] })}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {!hasPillarData && !pillarError && (
         <Card className="border-dashed" data-testid="card-pillar-empty">
           <CardContent className="py-8 text-center">
             <Shield className="w-8 h-8 mx-auto text-muted-foreground/40 mb-3" />

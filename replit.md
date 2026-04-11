@@ -66,7 +66,7 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - DB tables: `portfolio_holdings` (userId, asset, ticker, pillar, valueNgn, shares, corridor, etc.), `portfolio_config` (targets, tolerance, baseline/target values)
 - API endpoints (shared module): GET /api/investments, GET /api/portfolio, POST /api/portfolio/holdings, PATCH /api/portfolio/holdings/:id, DELETE /api/portfolio/holdings/:id, POST /api/portfolio/config, POST /api/portfolio/parse-pdf
 - No standalone pages — features integrated into existing pages:
-  - Portfolio page (`portfolio.tsx`) enhanced with 3-pillar gauges, rebalance alerts, real/nominal return metrics, macro summary row
+  - Portfolio page (`portfolio.tsx`) fully enhanced with: 3-pillar gauges, rebalance alerts, real/nominal return metrics, macro summary row, CRUD holdings table (grouped by pillar with live stock prices, gain/loss%, strategic IRR/rental yield/corridor), add holding dialog, edit/delete inline, portfolio config dialog (baseline/target/pillar targets/tolerance/cash), PDF broker note upload with auto-import, transaction costs breakdown (brokerage/fees/stamp duty), available cash display
   - Market Data page (`market-data.tsx`) enhanced with Investment Landscape section (instrument cards with real yields, risk, macro pills)
 - 3 pillars: STABILITY (T-Bills, MMF), INFLATION (Equities, Bonds), STRATEGIC (Real Estate)
 - `defaultQueryFn` in `lib/api-helpers.ts` handles auth token injection for all useQuery calls
