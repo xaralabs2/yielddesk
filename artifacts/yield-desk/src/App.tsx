@@ -15,6 +15,7 @@ import DealsPage from "@/pages/deals";
 import AlertsPage from "@/pages/alerts";
 import SignalsPage from "@/pages/signals";
 import MarketDataPage from "@/pages/market-data";
+import MmRatesPage from "@/pages/mm-rates";
 import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient({
@@ -69,6 +70,7 @@ function AppRouter() {
         <Route path="/alerts" component={() => <ProtectedRoute component={AlertsPage} />} />
         <Route path="/signals" component={() => <ProtectedRoute component={SignalsPage} />} />
         <Route path="/market-data" component={() => <ProtectedRoute component={MarketDataPage} />} />
+        <Route path="/mm-rates" component={() => <ProtectedRoute component={MmRatesPage} />} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

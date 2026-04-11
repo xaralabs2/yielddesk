@@ -39,6 +39,13 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - `alerts` — id, userId, type (MARKET|PORTFOLIO|SYSTEM), message, read
 - `cbn_market_data` — id, source, securityType (NTB|BOND|OMO), tenor, auctionDate, maturityDate, marginalRate, trueYield, amountOffered, totalSubscription, totalSuccessful, fetchedAt
 
+### Money Market Rates
+- Three data sources: NTB/OMO proxy rates (from CBN), FMDQ scraping (NIBOR/OBB/Repo), and manual entry (dealer quotes/Bloomberg)
+- DB table: `mm_rates` — source (FMDQ|MANUAL), rateType, tenor, rate, date, notes
+- FMDQ scraper: tries JSON APIs first (`/wp-json/fmdq/v1/nibor`, `/repo-obb`), falls back to HTML table scraping
+- API endpoints: GET /api/mm/rates, GET /api/mm/summary, POST /api/mm/rates, DELETE /api/mm/rates/:id, POST /api/mm/sync-fmdq
+- Manual rate types: NIBOR, OBB, REPO, CALL, CP, MMF_YIELD
+
 ### CBN Data Feed
 - Live data from Central Bank of Nigeria JSON APIs:
   - `https://www.cbn.gov.ng/api/GetAllSecuritiesNTB` — Treasury Bills

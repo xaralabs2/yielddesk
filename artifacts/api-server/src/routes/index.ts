@@ -8,6 +8,7 @@ import alertsRouter from "./alerts";
 import decisionRouter from "./decision";
 import adminRouter from "./admin";
 import cbnRouter from "./cbn";
+import mmRatesRouter from "./mm-rates";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(alertsRouter);
 router.use(decisionRouter);
 router.use(adminRouter);
 router.use(cbnRouter);
+router.use(mmRatesRouter);
 
 export default router;

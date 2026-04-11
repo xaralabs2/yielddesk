@@ -13,6 +13,7 @@ import {
   Sun,
   Moon,
   Monitor,
+  Coins,
 } from "lucide-react";
 import { useGetAlertCount, getGetAlertCountQueryKey } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
@@ -66,6 +67,7 @@ export function Sidebar() {
     { href: "/holdings", label: "Holdings", icon: WalletCards },
     { href: "/deals", label: "Deals", icon: LineChart },
     { href: "/market-data", label: "Market Data", icon: Landmark },
+    { href: "/mm-rates", label: "MM Rates", icon: Coins },
     { href: "/signals", label: "Signals", icon: Activity },
     { 
       href: "/alerts", 

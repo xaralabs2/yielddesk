@@ -4,3 +4,4 @@ export * from "./deals";
 export * from "./signals";
 export * from "./alerts";
 export * from "./cbn-market-data";
+export * from "./mm-rates";
