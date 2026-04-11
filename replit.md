@@ -54,11 +54,6 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - Otherwise → HOLD_MMMF
 - Currency: Nigerian Naira (NGN)
 
-### Investment Products
-- Equity Market Fund (EMF) — unit-based equity exposure, bid/offer pricing, weekly/monthly/quarterly DCA, dividend reinvest or payout
-- Money Market Fund (MMF) — 15.34% p.a yield, low risk, min ₦10k, 30-365 day tenor, quarterly returns
-- Fixed Term Investment Portfolio (FTIP) — 10.75-16.39% rate, low risk, min ₦200k, 30-365 day tenor, 20% early penalty
-
 ### Theme Support
 - Dark / Light / System mode toggle in sidebar
 - Theme stored in localStorage (`yielddesk-theme` key)

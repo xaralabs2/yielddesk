@@ -13,7 +13,6 @@ import {
   Sun,
   Moon,
   Monitor,
-  PiggyBank
 } from "lucide-react";
 import { useGetAlertCount, getGetAlertCountQueryKey } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
@@ -67,7 +66,6 @@ export function Sidebar() {
     { href: "/holdings", label: "Holdings", icon: WalletCards },
     { href: "/deals", label: "Deals", icon: LineChart },
     { href: "/market-data", label: "Market Data", icon: Landmark },
-    { href: "/invest", label: "Invest", icon: PiggyBank },
     { href: "/signals", label: "Signals", icon: Activity },
     { 
       href: "/alerts", 
