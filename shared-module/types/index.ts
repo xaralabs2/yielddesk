@@ -117,23 +117,28 @@ export type EtfSignal = {
   signal: "BUY" | "HOLD" | "SELL";
   confidence: number;
   reasoning: string;
+  role: string;
+  regime: string;
 };
 
 export type EtfPrice = {
   symbol: string;
   price: number;
-  change: number;
+  change1d: number;
 };
 
 export type FactorSignal = {
-  factor: string;
-  direction: "OVERWEIGHT" | "NEUTRAL" | "UNDERWEIGHT";
+  factorType: string;
+  signal: string;
+  confidence: number;
   reasoning: string;
+  symbol: string;
 };
 
 export type EtfAllocationData = {
   regime: {
     name: string;
+    code: string;
     color: "GREEN" | "YELLOW" | "ORANGE" | "RED" | "GREY";
     confidence: number;
     summary: string;
@@ -141,6 +146,7 @@ export type EtfAllocationData = {
   etfSignals: EtfSignal[];
   etfPrices: EtfPrice[];
   factorSignals: FactorSignal[];
+  lastUpdated: string | null;
 };
 
 export interface IPortfolioStorage {

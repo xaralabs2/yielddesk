@@ -88,9 +88,10 @@ type EtfAllocationData = {
     confidence: number;
     summary: string;
   };
-  etfSignals: { symbol: string; name: string; signal: "BUY" | "HOLD" | "SELL"; confidence: number; reasoning: string }[];
-  etfPrices: { symbol: string; price: number; change: number }[];
-  factorSignals: { factor: string; direction: string; reasoning: string }[];
+  etfSignals: { symbol: string; name: string; signal: "BUY" | "HOLD" | "SELL"; confidence: number; reasoning: string; role: string; regime: string }[];
+  etfPrices: { symbol: string; price: number; change1d: number }[];
+  factorSignals: { factorType: string; signal: string; confidence: number; reasoning: string; symbol: string }[];
+  lastUpdated: string | null;
 };
 
 const PILLAR_COLORS: Record<string, string> = {

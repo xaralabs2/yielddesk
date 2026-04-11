@@ -1,49 +1,63 @@
 import type { EtfAllocationData, MacroData } from "../types";
 
-const NGX_ETFS = [
-  { symbol: "VETBANK", name: "Vetiva Banking ETF" },
-  { symbol: "VETGOODS", name: "Vetiva Consumer Goods ETF" },
-  { symbol: "VETINDETF", name: "Vetiva Industrial ETF" },
-  { symbol: "VSPBONDETF", name: "Vetiva S&P Bond ETF" },
-  { symbol: "GREENWETF", name: "Greenwich Alpha ETF" },
-  { symbol: "MERGROWTH", name: "Meristem Growth ETF" },
-  { symbol: "MERVALUE", name: "Meristem Value ETF" },
+const NGX_ETFS: { symbol: string; name: string; role: string; price: number }[] = [
+  { symbol: "VETBANK", name: "Vetiva Banking ETF", role: "sector", price: 15.50 },
+  { symbol: "VETGOODS", name: "Vetiva Consumer Goods ETF", role: "sector", price: 8.75 },
+  { symbol: "VETINDETF", name: "Vetiva Industrial ETF", role: "sector", price: 12.30 },
+  { symbol: "VSPBONDETF", name: "Vetiva S&P Bond ETF", role: "defensive", price: 105.20 },
+  { symbol: "GREENWETF", name: "Greenwich Alpha ETF", role: "alpha", price: 22.40 },
+  { symbol: "MERGROWTH", name: "Meristem Growth ETF", role: "factor-growth", price: 18.60 },
+  { symbol: "MERVALUE", name: "Meristem Value ETF", role: "factor-value", price: 14.90 },
 ];
 
 type RegimeType = "Tight Liquidity" | "Moderate Liquidity" | "Loose Liquidity" | "Easing Cycle";
 
-function detectRegime(macro: MacroData): { name: RegimeType; color: EtfAllocationData["regime"]["color"]; confidence: number; summary: string } {
+const REGIME_CODES: Record<RegimeType, string> = {
+  "Tight Liquidity": "R2_TIGHT_LIQUIDITY",
+  "Moderate Liquidity": "R3_MODERATE_LIQUIDITY",
+  "Loose Liquidity": "R4_LOOSE_LIQUIDITY",
+  "Easing Cycle": "R5_EASING_CYCLE",
+};
+
+function detectRegime(macro: MacroData): { name: RegimeType; code: string; color: EtfAllocationData["regime"]["color"]; confidence: number; summary: string } {
   const mpr = macro.mpr ?? 18;
   const inflation = macro.inflation ?? 15;
-  const tbill = macro.tbillRate ?? mpr;
   const realRate = mpr - inflation;
 
   if (mpr >= 20 && realRate > 2) {
+    const name: RegimeType = "Tight Liquidity";
     return {
-      name: "Tight Liquidity",
+      name,
+      code: REGIME_CODES[name],
       color: "ORANGE",
       confidence: Math.min(0.85, 0.4 + (mpr - 18) * 0.05 + Math.max(realRate - 1, 0) * 0.08),
-      summary: `MPR at ${mpr}% with real rate +${realRate.toFixed(1)}%. System liquidity is constrained. Banks benefit from wider NIM, growth stocks face compression.`,
+      summary: `High rates constraining liquidity. Overweight banks and bonds, underweight growth.`,
     };
   }
   if (mpr >= 16 && realRate > 0) {
+    const name: RegimeType = "Moderate Liquidity";
     return {
-      name: "Moderate Liquidity",
+      name,
+      code: REGIME_CODES[name],
       color: "YELLOW",
       confidence: Math.min(0.75, 0.35 + Math.abs(realRate) * 0.1),
       summary: `MPR at ${mpr}% is neutral to tight. Inflation at ${inflation}% keeps real rates marginally positive. Mixed signals for equities.`,
     };
   }
   if (realRate < -1) {
+    const name: RegimeType = "Loose Liquidity";
     return {
-      name: "Loose Liquidity",
+      name,
+      code: REGIME_CODES[name],
       color: "GREEN",
       confidence: Math.min(0.8, 0.4 + Math.abs(realRate) * 0.06),
       summary: `Negative real rates (${realRate.toFixed(1)}%) incentivise risk-taking. Equities and real assets benefit; fixed-income erodes in real terms.`,
     };
   }
+  const name: RegimeType = "Easing Cycle";
   return {
-    name: "Easing Cycle",
+    name,
+    code: REGIME_CODES[name],
     color: "GREEN",
     confidence: 0.45,
     summary: `MPR at ${mpr}%. Monetary conditions are accommodative. Growth-oriented ETFs may outperform.`,
@@ -89,9 +103,29 @@ const REGIME_SIGNALS: Record<RegimeType, Record<string, { signal: "BUY" | "HOLD"
   },
 };
 
+const FACTOR_SIGNALS: Record<RegimeType, { growth: { signal: string; confidence: number; reasoning: string }; value: { signal: string; confidence: number; reasoning: string } }> = {
+  "Tight Liquidity": {
+    growth: { signal: "SELL", confidence: 0.80, reasoning: "Tight policy and high inflation compress growth multiples" },
+    value: { signal: "BUY", confidence: 0.80, reasoning: "Value rotation — dividend yield and cash flow focus in tightening" },
+  },
+  "Moderate Liquidity": {
+    growth: { signal: "HOLD", confidence: 0.55, reasoning: "Mixed macro signals for growth factor" },
+    value: { signal: "HOLD", confidence: 0.60, reasoning: "Value modestly preferred in neutral regime" },
+  },
+  "Loose Liquidity": {
+    growth: { signal: "BUY", confidence: 0.80, reasoning: "Cheap capital and risk appetite drive growth outperformance" },
+    value: { signal: "SELL", confidence: 0.65, reasoning: "Value underperforms in liquidity-driven growth rally" },
+  },
+  "Easing Cycle": {
+    growth: { signal: "BUY", confidence: 0.70, reasoning: "Rate cuts benefit growth multiples" },
+    value: { signal: "HOLD", confidence: 0.50, reasoning: "Value rotation fading as rates decline" },
+  },
+};
+
 export function computeEtfAllocation(macro: MacroData): EtfAllocationData {
   const regime = detectRegime(macro);
   const signals = REGIME_SIGNALS[regime.name];
+  const regimeCode = regime.code;
 
   const etfSignals = NGX_ETFS.map((etf) => {
     const sig = signals[etf.symbol] || { signal: "HOLD" as const, confidence: 0.5, reasoning: "Insufficient data" };
@@ -101,38 +135,40 @@ export function computeEtfAllocation(macro: MacroData): EtfAllocationData {
       signal: sig.signal,
       confidence: sig.confidence,
       reasoning: sig.reasoning,
+      role: etf.role,
+      regime: regimeCode,
     };
   });
 
   const etfPrices = NGX_ETFS.map((etf) => ({
     symbol: etf.symbol,
-    price: 0,
-    change: 0,
+    price: etf.price,
+    change1d: 0,
   }));
 
-  const regimeName = regime.name;
-  const factorSignals = regimeName === "Tight Liquidity"
-    ? [
-        { factor: "Value", direction: "OVERWEIGHT" as const, reasoning: "Value outperforms in high-rate environments" },
-        { factor: "Growth", direction: "UNDERWEIGHT" as const, reasoning: "Growth compressed by discount rate expansion" },
-        { factor: "Income", direction: "OVERWEIGHT" as const, reasoning: "High yields reward income-seeking capital" },
-      ]
-    : regimeName === "Loose Liquidity"
-    ? [
-        { factor: "Value", direction: "UNDERWEIGHT" as const, reasoning: "Value underperforms in liquidity-driven markets" },
-        { factor: "Growth", direction: "OVERWEIGHT" as const, reasoning: "Growth benefits from cheap capital and risk appetite" },
-        { factor: "Income", direction: "NEUTRAL" as const, reasoning: "Income yields compress but remain relevant" },
-      ]
-    : [
-        { factor: "Value", direction: "NEUTRAL" as const, reasoning: "No clear factor tilt in current regime" },
-        { factor: "Growth", direction: "NEUTRAL" as const, reasoning: "Mixed macro signals" },
-        { factor: "Income", direction: "NEUTRAL" as const, reasoning: "Moderate yields" },
-      ];
+  const factorConfig = FACTOR_SIGNALS[regime.name];
+  const factorSignals = [
+    {
+      factorType: "GROWTH",
+      signal: factorConfig.growth.signal,
+      confidence: factorConfig.growth.confidence,
+      reasoning: factorConfig.growth.reasoning,
+      symbol: "MERGROWTH",
+    },
+    {
+      factorType: "VALUE",
+      signal: factorConfig.value.signal,
+      confidence: factorConfig.value.confidence,
+      reasoning: factorConfig.value.reasoning,
+      symbol: "MERVALUE",
+    },
+  ];
 
   return {
     regime,
     etfSignals,
     etfPrices,
     factorSignals,
+    lastUpdated: new Date().toISOString(),
   };
 }
