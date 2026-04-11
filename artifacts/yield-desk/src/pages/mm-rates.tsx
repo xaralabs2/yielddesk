@@ -205,9 +205,9 @@ export default function MmRatesPage() {
     <div className="p-6 space-y-6" data-testid="mm-rates-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Money Market Rates</h1>
+          <h1 className="text-2xl font-bold">NIBOR, OBB, Repo &amp; NTB/OMO Rates</h1>
           <p className="text-sm text-muted-foreground">
-            NIBOR, OBB, Repo rates and NTB/OMO proxies
+            Interbank, open buy-back, repo rates and treasury bill proxies
             {summary?.lastFmdqSync && (
               <span className="ml-2 text-xs">
                 Last FMDQ sync: {new Date(summary.lastFmdqSync).toLocaleString()}
