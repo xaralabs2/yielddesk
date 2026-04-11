@@ -12,11 +12,52 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 type AuthMiddleware = (req: Request, res: Response, next: NextFunction) => void;
 type GetUserId = (req: Request) => string;
 
+type HoldingsRecord = {
+  id: number;
+  userId: number | string;
+  type: string;
+  amount: number;
+  rate: number;
+  issuer: string;
+  startDate: Date | null;
+  maturityDate: Date | null;
+  status: string;
+};
+
+type FetchHoldings = (userId: string) => Promise<HoldingsRecord[]>;
+
+const HOLDING_TYPE_TO_PILLAR: Record<string, string> = {
+  CP: "STABILITY",
+  MMMF: "STABILITY",
+  BOND: "STABILITY",
+  STOCK: "INFLATION",
+};
+
+function convertHoldingToPortfolio(h: HoldingsRecord): import("../types").PortfolioHolding {
+  return {
+    id: -h.id,
+    userId: String(h.userId),
+    asset: h.issuer || h.type,
+    ticker: null,
+    pillar: HOLDING_TYPE_TO_PILLAR[h.type] || "STABILITY",
+    valueNgn: h.amount,
+    shares: null,
+    entryValueNgn: h.amount,
+    entryFxRate: null,
+    annualRentNgn: null,
+    cumulativeRentNgn: null,
+    corridor: null,
+    entryDate: h.startDate,
+    lastUpdated: h.startDate,
+  };
+}
+
 export function registerInvestmentPortfolioRoutes(
   app: Express,
   storage: IPortfolioStorage,
   isAuthenticated: AuthMiddleware,
-  getUserId: GetUserId
+  getUserId: GetUserId,
+  fetchHoldings?: FetchHoldings,
 ) {
   app.get("/api/investments", async (_req, res) => {
     try {
@@ -49,12 +90,17 @@ export function registerInvestmentPortfolioRoutes(
   app.get("/api/portfolio", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId(req);
-      const [holdings, config, latestMacro] = await Promise.all([
+      const [portfolioHoldings, config, latestMacro, externalHoldings] = await Promise.all([
         storage.getPortfolioHoldings(userId),
         storage.getPortfolioConfig(userId),
         storage.getLatestMacroData(),
+        fetchHoldings ? fetchHoldings(userId) : Promise.resolve([]),
       ]);
-      const dashboard = await computePortfolioDashboard(holdings, config, latestMacro);
+      const convertedExternal = externalHoldings
+        .filter((h) => h.status === "ACTIVE")
+        .map(convertHoldingToPortfolio);
+      const allHoldings = [...portfolioHoldings, ...convertedExternal];
+      const dashboard = await computePortfolioDashboard(allHoldings, config, latestMacro);
       return res.json(dashboard);
     } catch (error) {
       console.error("Portfolio API error:", error);
