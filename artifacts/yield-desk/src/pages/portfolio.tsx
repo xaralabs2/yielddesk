@@ -238,14 +238,15 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
   const [entryDate, setEntryDate] = useState("");
   const { toast } = useToast();
 
-  const isEquity = pillar === "STABILITY" || pillar === "INFLATION";
-  const computedValue = isEquity && shares && costPrice
+  const isEquityPillar = pillar === "STABILITY" || pillar === "INFLATION";
+  const hasSharesEntry = isEquityPillar && shares && costPrice && !isNaN(parseFloat(shares)) && !isNaN(parseFloat(costPrice));
+  const computedValue = hasSharesEntry
     ? (parseFloat(shares) * parseFloat(costPrice)).toFixed(2)
     : "";
 
   const addMutation = useMutation({
     mutationFn: async () => {
-      const finalValue = isEquity && shares && costPrice
+      const finalValue = hasSharesEntry
         ? parseFloat(shares) * parseFloat(costPrice)
         : parseFloat(valueNgn);
       const payload: any = {
@@ -257,7 +258,7 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
         corridor: pillar === "STRATEGIC" && corridor ? corridor : null,
         entryDate: pillar === "STRATEGIC" && entryDate ? entryDate : null,
       };
-      if (isEquity && shares) {
+      if (hasSharesEntry) {
         payload.shares = parseFloat(shares);
         payload.entryValueNgn = finalValue;
       }
@@ -274,11 +275,11 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
   });
 
   const isValid = asset.trim() && pillar && (
-    isEquity
-      ? (shares && !isNaN(parseFloat(shares)) && parseFloat(shares) > 0 && costPrice && !isNaN(parseFloat(costPrice)) && parseFloat(costPrice) > 0)
+    hasSharesEntry
+      ? (parseFloat(shares) > 0 && parseFloat(costPrice) > 0)
       : (valueNgn && !isNaN(parseFloat(valueNgn)) && parseFloat(valueNgn) > 0)
   );
-  const effectiveValue = isEquity && computedValue ? computedValue : valueNgn;
+  const effectiveValue = hasSharesEntry && computedValue ? computedValue : valueNgn;
   const rentalYield = effectiveValue && annualRentNgn && parseFloat(effectiveValue) > 0
     ? ((parseFloat(annualRentNgn) / parseFloat(effectiveValue)) * 100).toFixed(2)
     : null;
@@ -304,15 +305,17 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
           </SelectContent>
         </Select>
       </div>
-      {isEquity ? (
+      {isEquityPillar && (
         <>
-          <div className="space-y-2">
-            <Label htmlFor="asset-shares">Number of Shares</Label>
-            <Input id="asset-shares" type="number" placeholder="e.g. 5000" value={shares} onChange={(e) => setShares(e.target.value)} data-testid="input-asset-shares" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="asset-cost-price">Cost Price per Share (NGN)</Label>
-            <Input id="asset-cost-price" type="number" step="0.01" placeholder="e.g. 28.50" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} data-testid="input-cost-price" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="asset-shares">Number of Shares (optional)</Label>
+              <Input id="asset-shares" type="number" placeholder="e.g. 5000" value={shares} onChange={(e) => setShares(e.target.value)} data-testid="input-asset-shares" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="asset-cost-price">Cost Price / Share (optional)</Label>
+              <Input id="asset-cost-price" type="number" step="0.01" placeholder="e.g. 28.50" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} data-testid="input-cost-price" />
+            </div>
           </div>
           {computedValue && (
             <div className="rounded-md bg-muted/50 p-3 border border-border/50">
@@ -322,10 +325,12 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
             </div>
           )}
         </>
-      ) : (
+      )}
+      {!hasSharesEntry && (
         <div className="space-y-2">
           <Label htmlFor="asset-value">Value (NGN)</Label>
           <Input id="asset-value" type="number" placeholder="e.g. 3000000" value={valueNgn} onChange={(e) => setValueNgn(e.target.value)} data-testid="input-asset-value" />
+          {isEquityPillar && <p className="text-[10px] text-muted-foreground">For cash/MMF instruments without share pricing, enter value directly.</p>}
         </div>
       )}
       {pillar === "STRATEGIC" && (
@@ -682,7 +687,8 @@ function PdfUploadDialog({ onClose }: { onClose: () => void }) {
       const formData = new FormData();
       formData.append("file", file);
       const token = getAuthToken();
-      const res = await fetch("/api/portfolio/parse-pdf", {
+      const apiBase = import.meta.env.VITE_API_URL || "";
+      const res = await fetch(`${apiBase}/api/portfolio/parse-pdf`, {
         method: "POST",
         body: formData,
         headers: token ? { "Authorization": `Bearer ${token}` } : {},
@@ -1445,18 +1451,21 @@ export default function PortfolioPage() {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => setEditHolding({
-                                        id: g.ids[0],
-                                        asset: g.asset,
-                                        ticker: g.ticker,
-                                        pillar: g.pillar,
-                                        valueNgn: g.totalValue,
-                                        shares: g.totalShares,
-                                        annualRentNgn: g.annualRentNgn,
-                                        corridor: g.corridor,
-                                        entryDate: g.entryDate,
-                                        cumulativeRentNgn: g.cumulativeRentNgn,
-                                      })}
+                                      onClick={() => {
+                                        const original = data.holdings.find((h: any) => h.id === g.ids[0]);
+                                        setEditHolding({
+                                          id: g.ids[0],
+                                          asset: original?.asset ?? g.asset,
+                                          ticker: original?.ticker ?? g.ticker,
+                                          pillar: original?.pillar ?? g.pillar,
+                                          valueNgn: original?.valueNgn ?? g.totalValue,
+                                          shares: original?.shares ?? 0,
+                                          annualRentNgn: original?.annualRentNgn ?? g.annualRentNgn,
+                                          corridor: original?.corridor ?? g.corridor,
+                                          entryDate: original?.entryDate ?? g.entryDate,
+                                          cumulativeRentNgn: original?.cumulativeRentNgn ?? g.cumulativeRentNgn,
+                                        });
+                                      }}
                                       data-testid={`button-edit-holding-${g.ids[0]}`}
                                     >
                                       <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
