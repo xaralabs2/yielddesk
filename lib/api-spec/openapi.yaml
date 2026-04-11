@@ -3,13 +3,29 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: YieldDesk Capital Allocation API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: holdings
+    description: Portfolio holdings
+  - name: deals
+    description: Deal management
+  - name: signals
+    description: Market signals
+  - name: alerts
+    description: Alert notifications
+  - name: decision
+    description: Decision engine
+  - name: portfolio
+    description: Portfolio summary
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
@@ -24,6 +40,479 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/signup:
+    post:
+      operationId: signup
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /decision:
+    get:
+      operationId: getDecision
+      tags: [decision]
+      summary: Get current decision engine output
+      responses:
+        "200":
+          description: Decision result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionResult"
+
+  /portfolio/summary:
+    get:
+      operationId: getPortfolioSummary
+      tags: [portfolio]
+      summary: Get portfolio summary with allocation breakdown
+      responses:
+        "200":
+          description: Portfolio summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioSummary"
+
+  /portfolio/analytics:
+    get:
+      operationId: getPortfolioAnalytics
+      tags: [portfolio]
+      summary: Get portfolio analytics (yield, deployment rate, idle cash)
+      responses:
+        "200":
+          description: Portfolio analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioAnalytics"
+
+  /holdings:
+    get:
+      operationId: listHoldings
+      tags: [holdings]
+      summary: List all holdings
+      responses:
+        "200":
+          description: List of holdings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Holding"
+    post:
+      operationId: createHolding
+      tags: [holdings]
+      summary: Create a new holding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHoldingBody"
+      responses:
+        "201":
+          description: Holding created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holding"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /holdings/{id}:
+    get:
+      operationId: getHolding
+      tags: [holdings]
+      summary: Get a single holding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Holding detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holding"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateHolding
+      tags: [holdings]
+      summary: Update a holding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateHoldingBody"
+      responses:
+        "200":
+          description: Holding updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holding"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteHolding
+      tags: [holdings]
+      summary: Delete a holding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /deals:
+    get:
+      operationId: listDeals
+      tags: [deals]
+      summary: List all deals
+      responses:
+        "200":
+          description: List of deals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deal"
+    post:
+      operationId: createDeal
+      tags: [deals]
+      summary: Create a new deal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDealBody"
+      responses:
+        "201":
+          description: Deal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /deals/{id}:
+    get:
+      operationId: getDeal
+      tags: [deals]
+      summary: Get deal detail with score
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deal with score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealWithScore"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /deals/{id}/score:
+    get:
+      operationId: scoreDeal
+      tags: [deals]
+      summary: Score a specific deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deal score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealScore"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signals:
+    get:
+      operationId: listSignals
+      tags: [signals]
+      summary: List market signals
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of signals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Signal"
+    post:
+      operationId: createSignal
+      tags: [signals]
+      summary: Submit a new market signal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSignalBody"
+      responses:
+        "201":
+          description: Signal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Signal"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signals/latest:
+    get:
+      operationId: getLatestSignal
+      tags: [signals]
+      summary: Get most recent market signal
+      responses:
+        "200":
+          description: Latest signal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Signal"
+        "404":
+          description: No signals found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List all alerts for the user
+      parameters:
+        - name: unreadOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /alerts/count:
+    get:
+      operationId: getAlertCount
+      tags: [alerts]
+      summary: Get count of unread alerts
+      responses:
+        "200":
+          description: Unread alert count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertCount"
+
+  /alerts/{id}/read:
+    put:
+      operationId: markAlertRead
+      tags: [alerts]
+      summary: Mark an alert as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Alert marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [decision]
+      summary: Get dashboard summary (rates, decision, portfolio snapshot)
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /holdings/maturing-soon:
+    get:
+      operationId: listMaturingHoldings
+      tags: [holdings]
+      summary: List holdings maturing within 7 days
+      responses:
+        "200":
+          description: Maturing holdings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Holding"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin system stats
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +523,454 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SignupBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          type: string
+          enum: [user, admin]
+          default: user
+      required:
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        role:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - role
+        - createdAt
+
+    DecisionResult:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [INVEST_CP, LOCK_BONDS, HOLD_MMMF]
+        amount:
+          type: number
+        reason:
+          type: string
+        confidence:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        currentCpRate:
+          type: number
+        currentBondYield:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - action
+        - amount
+        - reason
+        - confidence
+        - currentCpRate
+        - currentBondYield
+        - timestamp
+
+    Holding:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [CP, BOND, MMMF, STOCK]
+        amount:
+          type: number
+        rate:
+          type: number
+        issuer:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        maturityDate:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [ACTIVE, MATURED, SOLD]
+        daysRemaining:
+          type: ["integer", "null"]
+        expectedMaturityValue:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - type
+        - amount
+        - rate
+        - issuer
+        - startDate
+        - status
+        - createdAt
+
+    CreateHoldingBody:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [CP, BOND, MMMF, STOCK]
+        amount:
+          type: number
+        rate:
+          type: number
+        issuer:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        maturityDate:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [ACTIVE, MATURED, SOLD]
+          default: ACTIVE
+      required:
+        - type
+        - amount
+        - rate
+        - issuer
+        - startDate
+
+    UpdateHoldingBody:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [CP, BOND, MMMF, STOCK]
+        amount:
+          type: number
+        rate:
+          type: number
+        issuer:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        maturityDate:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [ACTIVE, MATURED, SOLD]
+
+    Deal:
+      type: object
+      properties:
+        id:
+          type: integer
+        issuer:
+          type: string
+        rate:
+          type: number
+        tenorDays:
+          type: integer
+        minAmount:
+          type: number
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - issuer
+        - rate
+        - tenorDays
+        - minAmount
+        - riskLevel
+        - createdAt
+
+    CreateDealBody:
+      type: object
+      properties:
+        issuer:
+          type: string
+        rate:
+          type: number
+        tenorDays:
+          type: integer
+        minAmount:
+          type: number
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+      required:
+        - issuer
+        - rate
+        - tenorDays
+        - minAmount
+        - riskLevel
+
+    DealWithScore:
+      type: object
+      properties:
+        deal:
+          $ref: "#/components/schemas/Deal"
+        score:
+          $ref: "#/components/schemas/DealScore"
+      required:
+        - deal
+        - score
+
+    DealScore:
+      type: object
+      properties:
+        score:
+          type: number
+        recommendation:
+          type: string
+          enum: [INVEST, HOLD, PASS]
+        factors:
+          type: object
+          properties:
+            yieldScore:
+              type: number
+            issuerScore:
+              type: number
+            tenorScore:
+              type: number
+            diversificationScore:
+              type: number
+          required:
+            - yieldScore
+            - issuerScore
+            - tenorScore
+            - diversificationScore
+      required:
+        - score
+        - recommendation
+        - factors
+
+    Signal:
+      type: object
+      properties:
+        id:
+          type: integer
+        cpRate:
+          type: number
+        bondYield:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - cpRate
+        - bondYield
+        - createdAt
+
+    CreateSignalBody:
+      type: object
+      properties:
+        cpRate:
+          type: number
+        bondYield:
+          type: number
+      required:
+        - cpRate
+        - bondYield
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [MARKET, PORTFOLIO, SYSTEM]
+        message:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - type
+        - message
+        - read
+        - createdAt
+
+    AlertCount:
+      type: object
+      properties:
+        unread:
+          type: integer
+        total:
+          type: integer
+      required:
+        - unread
+        - total
+
+    PortfolioSummary:
+      type: object
+      properties:
+        totalCapital:
+          type: number
+        allocationByType:
+          type: array
+          items:
+            $ref: "#/components/schemas/AllocationItem"
+        allocationByIssuer:
+          type: array
+          items:
+            $ref: "#/components/schemas/AllocationItem"
+        holdingsCount:
+          type: integer
+        activeHoldings:
+          type: integer
+      required:
+        - totalCapital
+        - allocationByType
+        - allocationByIssuer
+        - holdingsCount
+        - activeHoldings
+
+    AllocationItem:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: number
+        percentage:
+          type: number
+      required:
+        - name
+        - value
+        - percentage
+
+    PortfolioAnalytics:
+      type: object
+      properties:
+        effectiveYield:
+          type: number
+        capitalDeploymentRate:
+          type: number
+        idleCashPercentage:
+          type: number
+        totalDeployed:
+          type: number
+        totalIdle:
+          type: number
+      required:
+        - effectiveYield
+        - capitalDeploymentRate
+        - idleCashPercentage
+        - totalDeployed
+        - totalIdle
+
+    DashboardSummary:
+      type: object
+      properties:
+        decision:
+          $ref: "#/components/schemas/DecisionResult"
+        latestSignal:
+          $ref: "#/components/schemas/Signal"
+        portfolioSnapshot:
+          $ref: "#/components/schemas/PortfolioSummary"
+        analytics:
+          $ref: "#/components/schemas/PortfolioAnalytics"
+        unreadAlerts:
+          type: integer
+        maturingSoonCount:
+          type: integer
+        recentDeals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Deal"
+      required:
+        - decision
+        - latestSignal
+        - portfolioSnapshot
+        - analytics
+        - unreadAlerts
+        - maturingSoonCount
+        - recentDeals
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalHoldings:
+          type: integer
+        totalDeals:
+          type: integer
+        totalAlerts:
+          type: integer
+        totalSignals:
+          type: integer
+        activeUsers:
+          type: integer
+      required:
+        - totalUsers
+        - totalHoldings
+        - totalDeals
+        - totalAlerts
+        - totalSignals
+        - activeUsers

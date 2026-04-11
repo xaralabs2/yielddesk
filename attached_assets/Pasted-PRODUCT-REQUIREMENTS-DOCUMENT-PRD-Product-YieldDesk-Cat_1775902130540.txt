@@ -1,0 +1,312 @@
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+Product: YieldDesk
+Category: Capital Allocation & Yield Optimization Platform
+Platforms:
+Mobile: Flutter (iOS/Android)
+Web: React
+Backend: Node.js + Express
+Database: PostgreSQL
+Cache/Queue: Redis
+1. PRODUCT VISION
+
+YieldDesk is a capital allocation system that continuously determines:
+
+“Where should capital be deployed right now to maximize yield under defined rules?”
+
+It combines:
+
+Market signals (rates, deals)
+Portfolio state
+Deterministic rules
+
+To produce:
+
+Clear actions
+Portfolio insights
+Timely alerts
+2. CORE PRINCIPLE
+
+The system is decision-first, not data-first.
+
+All features must support:
+
+Decision → Allocation → Monitoring → Reallocation
+
+3. CORE DECISION ENGINE
+Base Rule Set
+if (cp_rate >= 18) return "INVEST_CP";
+if (bond_yield >= 17) return "LOCK_BONDS";
+return "HOLD_MMMF";
+Extended Decision Inputs
+CP rates (multiple issuers)
+Bond yield curve (tenors)
+User portfolio allocation
+Liquidity level
+Time to maturity (existing CPs)
+Extended Output
+{
+  "action": "INVEST_CP",
+  "amount": 5000000,
+  "reason": "CP rate exceeds threshold",
+  "confidence": "HIGH"
+}
+4. FEATURE SET
+4.1 Decision Engine
+Real-time evaluation of:
+CP rates
+Bond yields
+Portfolio state
+Outputs:
+Action
+Suggested allocation
+Rationale
+4.2 Portfolio Management
+
+Users can:
+
+Create portfolio
+Add/update/delete holdings
+View allocation by:
+asset class
+issuer
+maturity
+4.3 CP Management
+
+Track each CP:
+
+issuer
+amount
+rate
+tenor
+start date
+maturity date
+status
+
+Derived fields:
+
+days remaining
+expected maturity value
+4.4 Bond Management
+Track FGN bonds by tenor
+Show:
+yield
+duration
+coupon schedule
+4.5 Deal Intake System
+
+Users can:
+
+Input deals manually
+Import deals (API-ready)
+Store multiple offers
+
+Each deal includes:
+
+issuer
+rate
+tenor
+minimum investment
+risk classification
+4.6 Deal Scoring
+
+Each deal is scored based on:
+
+yield
+issuer quality
+tenor
+diversification impact
+
+Output:
+
+{
+  "score": 17.5,
+  "recommendation": "INVEST"
+}
+4.7 Alerts Engine
+
+Triggers:
+
+Market-based
+CP ≥ threshold
+Bond yield spike
+Portfolio-based
+CP maturity ≤ 7 days
+Concentration risk
+System-based
+Idle cash detected
+4.8 Multi-User System
+
+Each user has:
+
+independent portfolio
+independent alerts
+independent decisions
+4.9 Authentication
+Email/password
+JWT sessions
+Secure password hashing
+4.10 Role Model
+User
+Admin
+
+Admin can:
+
+monitor system usage
+manage signals
+5. DATA MODEL
+users
+id (uuid)
+email
+password_hash
+created_at
+portfolios
+id
+user_id
+total_capital
+holdings
+id
+user_id
+type (CP/BOND/MMMF/STOCK)
+amount
+rate
+issuer
+start_date
+maturity_date
+status
+deals
+id
+issuer
+rate
+tenor_days
+min_amount
+risk_level
+created_at
+signals
+id
+cp_rate
+bond_yield
+created_at
+alerts
+id
+user_id
+type
+message
+read
+created_at
+6. API DESIGN
+Auth
+POST /api/auth/signup
+POST /api/auth/login
+Decision
+GET /api/decision
+Returns decision + allocation suggestion
+Holdings
+GET /api/holdings
+POST /api/holdings
+PUT /api/holdings/:id
+DELETE /api/holdings/:id
+Deals
+GET /api/deals
+POST /api/deals
+Signals
+POST /api/signals
+GET /api/signals
+Alerts
+GET /api/alerts
+PUT /api/alerts/:id/read
+7. BACKGROUND PROCESSING
+Scheduled Jobs
+
+Run periodically:
+
+Market Evaluation
+Evaluate CP and bond thresholds
+Generate alerts
+Portfolio Evaluation
+Detect upcoming maturities
+Detect idle capital
+Decision Refresh
+Recompute recommendations
+8. MOBILE APPLICATION (FLUTTER)
+Screens
+Dashboard
+current rates
+decision output
+suggested action
+Portfolio
+holdings list
+allocation view
+CP Tracker
+maturity countdown
+highlight urgent items
+Deals
+list incoming deals
+allow manual entry
+Alerts
+system alerts
+actionable items
+Authentication
+login/signup
+9. WEB APPLICATION (REACT)
+
+Same functionality as mobile with:
+
+larger data tables
+deal scoring visualization
+portfolio analytics
+10. SYSTEM FLOW
+User logs in
+→ system loads portfolio
+→ user inputs or receives market data
+→ decision engine evaluates
+→ action is generated
+→ alerts triggered
+→ user updates portfolio
+→ cycle repeats
+11. SECURITY
+JWT authentication
+bcrypt password hashing
+protected API routes
+input validation
+12. SCALING STRATEGY
+Backend
+stateless services
+horizontal scaling
+Database
+PostgreSQL with indexing
+partitioning for large datasets
+Cache
+Redis for:
+signals
+alerts
+session caching
+Queue
+background job processing
+13. ANALYTICS
+
+Track:
+
+effective yield
+capital deployment rate
+idle cash percentage
+decision accuracy
+14. SUCCESS METRICS
+
+System is successful if:
+
+decisions are consistently generated
+users maintain active portfolios
+alerts trigger correctly
+capital is actively deployed
+15. PRODUCT POSITIONING
+
+YieldDesk is:
+
+A deterministic capital allocation engine
+
+Not:
+
+a trading app
+a brokerage
+a passive tracker
+END
