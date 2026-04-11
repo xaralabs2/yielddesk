@@ -58,6 +58,18 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - DB tables: `cbn_market_data` (auctions), `cbn_policy_rates` (monthly indicators), `cbn_exchange_rates` (daily FX)
 - API endpoints: GET /api/cbn/rates-summary, GET /api/cbn/market-data, GET /api/cbn/policy-rates, GET /api/cbn/exchange-rates, POST /api/cbn/sync, POST /api/cbn/sync-all
 
+### Shared Module (Investment Intelligence + 3-Pillar Portfolio)
+- Located in `shared-module/` — contains server routes, portfolio engine, investment landscape data, NGX stock price feed, PDF broker note parser
+- Types in `shared-module/types/index.ts`: PortfolioHolding, PortfolioConfig, MacroData, InvestmentOption, etc.
+- Server routes registered via `registerInvestmentPortfolioRoutes()` in `app.ts`
+- Storage adapter in `artifacts/api-server/src/lib/portfolio-storage.ts` implements `IPortfolioStorage` backed by Drizzle
+- DB tables: `portfolio_holdings` (userId, asset, ticker, pillar, valueNgn, shares, corridor, etc.), `portfolio_config` (targets, tolerance, baseline/target values)
+- API endpoints (shared module): GET /api/investments, GET /api/portfolio, POST /api/portfolio/holdings, PATCH /api/portfolio/holdings/:id, DELETE /api/portfolio/holdings/:id, POST /api/portfolio/config, POST /api/portfolio/parse-pdf
+- Frontend pages: `/investments` (investment-landscape.tsx), `/portfolio-engine` (portfolio-engine.tsx)
+- 3 pillars: STABILITY (T-Bills, MMF), INFLATION (Equities, Bonds), STRATEGIC (Real Estate)
+- `defaultQueryFn` in `lib/api-helpers.ts` handles auth token injection for all useQuery calls
+- Packages: multer, pdf-parse (externalized in esbuild build)
+
 ### Decision Engine Thresholds
 - CP rate >= 18% → INVEST_CP
 - Bond yield >= 17% → LOCK_BONDS

@@ -16,13 +16,17 @@ import AlertsPage from "@/pages/alerts";
 import SignalsPage from "@/pages/signals";
 import MarketDataPage from "@/pages/market-data";
 import MmRatesPage from "@/pages/mm-rates";
+import InvestmentLandscapePage from "@/pages/investment-landscape";
+import PortfolioEnginePage from "@/pages/portfolio-engine";
 import { ThemeProvider } from "@/lib/theme";
+import { defaultQueryFn } from "@/lib/api-helpers";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
+      queryFn: defaultQueryFn as any,
     },
   },
 });
@@ -71,6 +75,8 @@ function AppRouter() {
         <Route path="/signals" component={() => <ProtectedRoute component={SignalsPage} />} />
         <Route path="/market-data" component={() => <ProtectedRoute component={MarketDataPage} />} />
         <Route path="/mm-rates" component={() => <ProtectedRoute component={MmRatesPage} />} />
+        <Route path="/investments" component={() => <ProtectedRoute component={InvestmentLandscapePage} />} />
+        <Route path="/portfolio-engine" component={() => <ProtectedRoute component={PortfolioEnginePage} />} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
