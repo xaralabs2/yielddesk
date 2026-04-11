@@ -8,7 +8,8 @@ import {
   Bell, 
   Activity, 
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  Landmark
 } from "lucide-react";
 import { useGetAlertCount } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ export function Sidebar() {
     { href: "/portfolio", label: "Portfolio", icon: Briefcase },
     { href: "/holdings", label: "Holdings", icon: WalletCards },
     { href: "/deals", label: "Deals", icon: LineChart },
+    { href: "/market-data", label: "Market Data", icon: Landmark },
     { href: "/signals", label: "Signals", icon: Activity },
     { 
       href: "/alerts", 

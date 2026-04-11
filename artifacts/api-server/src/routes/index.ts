@@ -7,6 +7,7 @@ import signalsRouter from "./signals";
 import alertsRouter from "./alerts";
 import decisionRouter from "./decision";
 import adminRouter from "./admin";
+import cbnRouter from "./cbn";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(signalsRouter);
 router.use(alertsRouter);
 router.use(decisionRouter);
 router.use(adminRouter);
+router.use(cbnRouter);
 
 export default router;

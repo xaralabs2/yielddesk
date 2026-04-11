@@ -35,8 +35,18 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - `users` — id, email, passwordHash, role (user|admin)
 - `holdings` — id, userId, type (CP|BOND|MMMF|STOCK), amount, rate, issuer, startDate, maturityDate, status
 - `deals` — id, userId, issuer, rate, tenorDays, minAmount, riskLevel
-- `signals` — id, userId, cpRate, bondYield
+- `signals` — id, cpRate, bondYield, createdAt
 - `alerts` — id, userId, type (MARKET|PORTFOLIO|SYSTEM), message, read
+- `cbn_market_data` — id, source, securityType (NTB|BOND|OMO), tenor, auctionDate, maturityDate, marginalRate, trueYield, amountOffered, totalSubscription, totalSuccessful, fetchedAt
+
+### CBN Data Feed
+- Live data from Central Bank of Nigeria JSON APIs:
+  - `https://www.cbn.gov.ng/api/GetAllSecuritiesNTB` — Treasury Bills
+  - `https://www.cbn.gov.ng/api/GetAllSecuritiesFGNBond` — FGN Bonds
+  - `https://www.cbn.gov.ng/api/GetAllSecuritiesOMO` — Open Market Operations
+- Auto-syncs on server startup and every hour via `startCbnSync()`
+- Creates market signals from live NTB 364-day rate (CP proxy) and FGN Bond rate
+- Custom API endpoints: GET /api/cbn/rates-summary, GET /api/cbn/market-data, POST /api/cbn/sync
 
 ### Decision Engine Thresholds
 - CP rate >= 18% → INVEST_CP

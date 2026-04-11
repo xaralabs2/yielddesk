@@ -14,6 +14,7 @@ import HoldingsPage from "@/pages/holdings";
 import DealsPage from "@/pages/deals";
 import AlertsPage from "@/pages/alerts";
 import SignalsPage from "@/pages/signals";
+import MarketDataPage from "@/pages/market-data";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +67,7 @@ function AppRouter() {
         <Route path="/deals" component={() => <ProtectedRoute component={DealsPage} />} />
         <Route path="/alerts" component={() => <ProtectedRoute component={AlertsPage} />} />
         <Route path="/signals" component={() => <ProtectedRoute component={SignalsPage} />} />
+        <Route path="/market-data" component={() => <ProtectedRoute component={MarketDataPage} />} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
