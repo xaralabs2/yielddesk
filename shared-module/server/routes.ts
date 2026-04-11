@@ -3,6 +3,7 @@ import multer from "multer";
 import type { IPortfolioStorage } from "../types";
 import { computePortfolioDashboard } from "./portfolio-engine";
 import { computeInvestmentLandscape } from "./investment-data";
+import { computeEtfAllocation } from "./etf-engine";
 import { resolveNgxTicker, resolveNgxTickerSync } from "./stock-prices";
 import { parseBrokerPdf } from "./pdf-parser";
 
@@ -28,6 +29,20 @@ export function registerInvestmentPortfolioRoutes(
     } catch (error) {
       console.error("Investments API error:", error);
       return res.status(500).json({ message: "Failed to fetch investment data" });
+    }
+  });
+
+  app.get("/api/etf/allocation", async (_req, res) => {
+    try {
+      const latest = await storage.getLatestMacroData();
+      if (!latest) {
+        return res.status(404).json({ message: "No macro data available" });
+      }
+      const data = computeEtfAllocation(latest);
+      return res.json(data);
+    } catch (error) {
+      console.error("ETF allocation API error:", error);
+      return res.status(500).json({ message: "Failed to compute ETF allocation" });
     }
   });
 

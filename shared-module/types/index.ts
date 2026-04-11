@@ -111,6 +111,38 @@ export type ParsedTransaction = {
   fees: number;
 };
 
+export type EtfSignal = {
+  symbol: string;
+  name: string;
+  signal: "BUY" | "HOLD" | "SELL";
+  confidence: number;
+  reasoning: string;
+};
+
+export type EtfPrice = {
+  symbol: string;
+  price: number;
+  change: number;
+};
+
+export type FactorSignal = {
+  factor: string;
+  direction: "OVERWEIGHT" | "NEUTRAL" | "UNDERWEIGHT";
+  reasoning: string;
+};
+
+export type EtfAllocationData = {
+  regime: {
+    name: string;
+    color: "GREEN" | "YELLOW" | "ORANGE" | "RED" | "GREY";
+    confidence: number;
+    summary: string;
+  };
+  etfSignals: EtfSignal[];
+  etfPrices: EtfPrice[];
+  factorSignals: FactorSignal[];
+};
+
 export interface IPortfolioStorage {
   getPortfolioHoldings(userId: string): Promise<PortfolioHolding[]>;
   addPortfolioHolding(data: Omit<PortfolioHolding, "id">): Promise<PortfolioHolding>;

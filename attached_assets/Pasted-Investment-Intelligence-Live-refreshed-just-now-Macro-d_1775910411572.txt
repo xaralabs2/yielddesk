@@ -1,0 +1,252 @@
+Investment Intelligence
+Live
+refreshed just now
+
+Macro-driven ETF allocation signals and Nigeria's investment yield environment. Real yields calculated against 15.06% inflation (CPI).
+
+CPI
+15.06%
+MPR
+26.50%
+T-Bill
+17.00%
+FX
+1,361.61 NGN
+Macro Regime
+Tight Liquidity
+47% confidence
+High rates constraining liquidity. Overweight banks and bonds, underweight growth.
+
+Tight Liquidity
+4/11/2026, 7:23:48 AM
+Risk Assessment
+Regime Risk
+Moderate
+
+Caution warranted — selective opportunities exist
+
+Model Confidence
+47%
+
+Weak signal — environment is ambiguous, be cautious
+
+High rates constraining liquidity. Overweight banks and bonds, underweight growth.
+
+ETF Strategy Signals
+7 ETFs tracked
+Macro-regime-driven signals for NGX-listed ETFs. These are research indicators to inform your investment decisions — not portfolio positions.
+
+ETF	Role	Signal	Confidence	Reasoning	Price (NGN)	1D Chg
+VETBANK
+Vetiva Banking ETF
+sector	BUY	85%	Banks benefit from higher NIM in tight monetary policy	₦15.50	+0.00%
+VETGOODS
+Vetiva Consumer Goods ETF
+sector	HOLD	65%	Consumer spending constrained by high rates	₦8.75	+0.00%
+VETINDETF
+Vetiva Industrial ETF
+sector	HOLD	60%	Industrial activity slows with tighter credit	₦12.30	+0.00%
+VSPBONDETF
+Vetiva S&P Bond ETF
+defensive	BUY	80%	High yields make bonds attractive for income	₦105.20	+0.00%
+GREENWETF
+Greenwich Alpha ETF
+alpha	HOLD	65%	Alpha constrained in tight liquidity	₦22.40	+0.00%
+MERGROWTH
+Meristem Growth ETF
+factor-growth	SELL	75%	Growth stocks suffer from rate compression	₦18.60	+0.00%
+MERVALUE
+Meristem Value ETF
+factor-value	BUY	80%	Value factor outperforms in tightening cycles	₦14.90	+0.00%
+Regime: R2_TIGHT_LIQUIDITY — Banks benefit from higher NIM in tight monetary policy
+
+Factor Rotation
+Growth
+SELL
+Confidence
+80%
+Tight policy and high inflation compress growth multiples
+
+MERGROWTH
+Value
+BUY
+Confidence
+80%
+Value rotation — dividend yield and cash flow focus in tightening
+
+MERVALUE
+Factor rotation reflects the current macro regime. In tight liquidity, value tends to outperform growth. In expansion, growth dominates. Signals update every 6 hours with macro data.
+
+Treasury Bills (NTB)
+Fixed Income
+14–19%
+Nominal
+Short-term government debt instruments issued by the Debt Management Office (DMO). Considered risk-free as they carry sovereign backing. Actively traded in primary and secondary markets.
+
+Tenor Breakdown
+91-Day
+14–17%
+Used for parking funds
+182-Day
+15–18%
+Most actively traded
+364-Day
+16–19%
+Benchmark short-term rate
+Risk:
+Very Low
+Liquidity:
+High
+Inflation Shield:
+Weak
+-1.06% to +3.94% real
+Capital preservation, short-term positioning. Risk: inflation may exceed returns (negative real yield).
+
+FGN Bonds
+Fixed Income
+16–20%
+Nominal
+Long-term government bonds with fixed coupon payments. You lock the rate at purchase, but market price fluctuates with inflation and interest-rate expectations. Can trade before maturity on secondary market.
+
+Tenor Breakdown
+3-5 Years
+16–19%
+7-10 Years
+17–19.5%
+15+ Years
+18–20%
+Risk:
+Low
+Liquidity:
+Medium
+Inflation Shield:
+Weak-Moderate
++0.94% to +4.94% real
+Long-term income if inflation stabilizes. Rate is locked but price risk exists.
+
+Bond ETF (VSPBONDETF)
+Fixed Income
+10–20%
+Nominal
+Basket of FGN Bonds traded like a stock on the NGX. Return comes from bond coupons plus price movement. Capital gains only materialize if yields fall. Higher volatility than many investors expect.
+
+Tenor Breakdown
+Yield Income
+14–18%
+From underlying bond coupons
+Capital Gain
+-5–10%
+Only if yields fall
+Risk:
+Medium
+Liquidity:
+High
+Inflation Shield:
+Weak
+-5.06% to +4.94% real
+Investors expressing a view on interest rates, not just income. Price-sensitive to MPR changes.
+
+Money Market Funds
+Cash & Near-Cash
+13–16%
+Nominal
+Managed portfolios of Treasury Bills, bank deposits, and short-dated securities. Offer daily liquidity with stable NAV. Good for idle cash and treasury management.
+
+Risk:
+Very Low
+Liquidity:
+Very High
+Inflation Shield:
+Weak
+-2.06% to +0.94% real
+Emergency funds, treasury management. Stable returns with daily access to capital.
+
+Nigerian Equities (NGX)
+Equities
+6–30%
+Nominal
+Return comes from dividends plus price appreciation on the Nigerian Exchange. Historically the best long-term inflation hedge among Nigerian assets. Sector selection matters significantly.
+
+Tenor Breakdown
+Tier-1 Banks
+8–12%
+Inflation-linked upside
+Cement
+6–10%
+Strong pricing power
+Energy
+7–11%
+USD-linked earnings
+Risk:
+High
+Liquidity:
+High
+Inflation Shield:
+Strong
+-9.06% to +14.94% real
+Beating inflation over time. Higher volatility but strongest real return potential.
+
+Real Estate (Prime Lagos)
+Real Assets
+5–15%
+Nominal
+Direct property investment or RE development. Rental yields in prime Lagos corridors range 5-8% with additional capital appreciation driven by inflation and FX dynamics. Low liquidity but strong store of value.
+
+Tenor Breakdown
+Rental Yield
+5–8%
+Prime Lagos corridors
+Capital Appreciation
+8–15%
+Inflation-driven
+Risk:
+Medium
+Liquidity:
+Low
+Inflation Shield:
+Strong
+-10.06% to -0.06% real
+Long-term store of value. Not for liquidity needs. Combines income with inflation protection.
+
+Fixed Deposits (Banks)
+Cash & Near-Cash
+8–14%
+Nominal
+Bank term deposits with fixed tenors. Usually offer lower rates than T-Bills because banks invest your money into those same securities and take a spread. Simplest option but not return-maximizing.
+
+Tenor Breakdown
+90-180 Days
+8–12%
+1 Year
+10–14%
+Risk:
+Very Low
+Liquidity:
+Medium
+Inflation Shield:
+Weak
+-7.06% to -1.06% real
+Simplicity, not return maximization. Lower yields than direct T-Bill participation.
+
+Comparison Matrix
+Investment	Nominal Return	Real Return	Inflation Hedge	Liquidity	Volatility	Risk
+Treasury Bills (NTB)	14–19%	-1.06 to +3.94%	Weak	High	Low	Very Low
+FGN Bonds	16–20%	+0.94 to +4.94%	Weak-Moderate	Medium	Medium	Low
+Bond ETF (VSPBONDETF)	10–20%	-5.06 to +4.94%	Weak	High	High	Medium
+Money Market Funds	13–16%	-2.06 to +0.94%	Weak	Very High	Very Low	Very Low
+Nigerian Equities (NGX)	6–30%	-9.06 to +14.94%	Strong	High	High	High
+Real Estate (Prime Lagos)	5–15%	-10.06 to -0.06%	Strong	Low	Low	Medium
+Fixed Deposits (Banks)	8–14%	-7.06 to -1.06%	Weak	Medium	Very Low	Very Low
+Market Context
+Nigeria is currently in a high-inflation / high-yield environment, which creates a key paradox: fixed income gives high coupons but may not grow real wealth. Real returns tend to come from assets that reprice, not assets that pay fixed income.
+
+Typical Sophisticated Allocation
+Short-term instruments (T-Bills, MMF)
+30-50%
+Equities (inflation hedge)
+30-40%
+Tactical bonds or alternatives
+10-20%
+Property or private deals
+5-15%
+These are market ranges (what investors are currently seeing), not fixed quotes. Actual rates vary by auction, institution, and entry timing.
