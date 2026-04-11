@@ -15,6 +15,8 @@ import DealsPage from "@/pages/deals";
 import AlertsPage from "@/pages/alerts";
 import SignalsPage from "@/pages/signals";
 import MarketDataPage from "@/pages/market-data";
+import InvestPage from "@/pages/invest";
+import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,6 +70,8 @@ function AppRouter() {
         <Route path="/alerts" component={() => <ProtectedRoute component={AlertsPage} />} />
         <Route path="/signals" component={() => <ProtectedRoute component={SignalsPage} />} />
         <Route path="/market-data" component={() => <ProtectedRoute component={MarketDataPage} />} />
+        <Route path="/invest" component={() => <ProtectedRoute component={InvestPage} />} />
+        <Route path="/invest/:productId" component={() => <ProtectedRoute component={InvestPage} />} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
@@ -76,16 +80,18 @@ function AppRouter() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <AuthProvider>
-            <AppRouter />
-          </AuthProvider>
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <AuthProvider>
+              <AppRouter />
+            </AuthProvider>
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
