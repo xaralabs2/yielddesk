@@ -1,17 +1,10 @@
 import type { ParsedTransaction } from "../types";
 
-let pdfParse: any;
-async function getPdfParse() {
-  if (!pdfParse) {
-    pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default;
-  }
-  return pdfParse;
-}
-
 export async function parseBrokerPdf(buffer: Buffer): Promise<ParsedTransaction> {
-  const parser = await getPdfParse();
-  const data = await parser(buffer);
-  const text = data.text;
+  const { PDFParse } = await import("pdf-parse");
+  const parser = new PDFParse({ data: buffer });
+  const result = await parser.getText();
+  const text = result.text;
 
   const type = extractTransactionType(text);
   const security = extractField(text, /Security\s*([A-Z][A-Z\s&]+?)(?:\n|$)/i)
