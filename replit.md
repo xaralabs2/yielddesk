@@ -43,9 +43,10 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - Four data sources: NTB/OMO proxy rates (from CBN), FMDQ scraping (NIBOR/OBB/Repo), GetEquity CP (live commercial paper), and manual entry (dealer quotes/Bloomberg)
 - DB table: `mm_rates` — source (FMDQ|MANUAL), rateType, tenor, rate, date, notes
 - FMDQ scraper: tries JSON APIs first (`/wp-json/fmdq/v1/nibor`, `/repo-obb`), falls back to HTML table scraping
-- GetEquity integration: `getequity-client.ts` fetches all tokens from GetEquity staging API, filters to Debt/Fixed Interest/Fund types; endpoint GET /api/mm/getequity-cp
+- GetEquity integration: `getequity-client.ts` fetches all tokens from GetEquity staging API; `fetchGeCpTokens()` filters to Debt/Fixed Interest/Fund types, `fetchAllDeals()` returns all non-cancelled deals
 - GetEquity base URL: `ge-exchange-staging-1.herokuapp.com/v1` (configurable via GETEQUITY_BASE_URL env var); auth via Bearer token (GETEQUITY_API_KEY secret)
-- API endpoints: GET /api/mm/rates, GET /api/mm/summary, POST /api/mm/rates, DELETE /api/mm/rates/:id, POST /api/mm/sync-fmdq, GET /api/mm/getequity-cp
+- GetEquity deal fields: name, symbol, image, investment_type, investment_category, interest, tenor, maturity, risk, rating, custodian, price, min_trade, max_trade, raise_amount, total_raised, payout_frequency, dividend, management_fee, carry, valuation, discount, milestone, completed_raise, closed, exited, secondaries
+- API endpoints: GET /api/mm/rates, GET /api/mm/summary, POST /api/mm/rates, DELETE /api/mm/rates/:id, POST /api/mm/sync-fmdq, GET /api/mm/getequity-cp, GET /api/mm/getequity-deals
 - Manual rate types: NIBOR, OBB, REPO, CALL, CP, MMF_YIELD
 
 ### CBN Data Feed

@@ -8,12 +8,18 @@ interface GeTokenPrice {
   exchange: number;
 }
 
+interface GeMinMaxTrade {
+  buy: number;
+  sell: number;
+}
+
 export interface GeToken {
   _id: string;
   name: string;
   symbol: string;
   image: string;
   currency: string;
+  country: string;
   type: string;
   deal_access: string;
   investment_type: string;
@@ -21,18 +27,35 @@ export interface GeToken {
   payout_frequency?: string;
   interest: number;
   tenor: number;
+  maturity: string | null;
   raise_amount: number;
   total_raised: number;
   supply: number;
+  total_supply: number;
   price: GeTokenPrice;
   prev_price: GeTokenPrice;
+  min_trade: GeMinMaxTrade;
+  max_trade: GeMinMaxTrade;
   buy_fee: number;
   sell_fee: number;
+  carry: number;
+  management_fee: number;
+  valuation: number;
+  discount: number;
+  dividend: number;
+  risk: string;
+  rating: string;
+  custodian: string;
+  milestone: number;
+  percentage: number;
   completed_raise: boolean;
+  closed: boolean;
   secondaries: boolean;
   exited: boolean;
+  cancelled: boolean;
   createdAt: string;
   updatedAt: string;
+  completed_raise_date?: string;
 }
 
 interface GeTokensResponse {
@@ -92,6 +115,11 @@ export async function fetchGeTokens(options?: {
   const result = await geRequest<GeTokensResponse>(`/api/tokens?${params}`);
   if (!result || result.status !== "success") return [];
   return result.data.tokens;
+}
+
+export async function fetchAllDeals(): Promise<GeToken[]> {
+  const allTokens = await fetchGeTokens({ limit: 200 });
+  return allTokens.filter((t) => !t.cancelled);
 }
 
 const CP_TYPES = new Set(["Debt", "Fixed Interest", "Fund"]);
