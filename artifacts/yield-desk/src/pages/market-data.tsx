@@ -41,9 +41,11 @@ interface MarketData {
   omo: MarketRecord[];
 }
 
-function getAuthHeaders() {
+function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
 }
 
 function useRatesSummary() {
@@ -160,9 +162,11 @@ export default function MarketDataPage() {
   const handleSync = async () => {
     setSyncing(true);
     try {
+      const headers = getAuthHeaders() as Record<string, string>;
+      headers["Content-Type"] = "application/json";
       const res = await fetch("/api/cbn/sync", {
         method: "POST",
-        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+        headers,
       });
       const result = await res.json();
       if (result.success) {

@@ -9,10 +9,45 @@ import {
   Activity, 
   LogOut,
   LayoutDashboard,
-  Landmark
+  Landmark,
+  Sun,
+  Moon,
+  Monitor,
+  PiggyBank
 } from "lucide-react";
-import { useGetAlertCount } from "@workspace/api-client-react";
+import { useGetAlertCount, getGetAlertCountQueryKey } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/lib/theme";
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const options = [
+    { value: "light" as const, icon: Sun, label: "Light" },
+    { value: "dark" as const, icon: Moon, label: "Dark" },
+    { value: "system" as const, icon: Monitor, label: "System" },
+  ];
+
+  return (
+    <div className="flex items-center gap-1 px-1 py-1 rounded-md bg-sidebar-accent/50" data-testid="theme-toggle">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => setTheme(opt.value)}
+          className={cn(
+            "flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors flex-1 justify-center",
+            theme === opt.value
+              ? "bg-sidebar-primary text-sidebar-primary-foreground"
+              : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
+          )}
+          data-testid={`theme-${opt.value}`}
+        >
+          <opt.icon className="w-3 h-3" />
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function Sidebar() {
   const [location] = useLocation();
@@ -20,6 +55,7 @@ export function Sidebar() {
   
   const { data: alertCount } = useGetAlertCount({
     query: {
+      queryKey: getGetAlertCountQueryKey(),
       enabled: !!user,
       refetchInterval: 30000
     }
@@ -31,6 +67,7 @@ export function Sidebar() {
     { href: "/holdings", label: "Holdings", icon: WalletCards },
     { href: "/deals", label: "Deals", icon: LineChart },
     { href: "/market-data", label: "Market Data", icon: Landmark },
+    { href: "/invest", label: "Invest", icon: PiggyBank },
     { href: "/signals", label: "Signals", icon: Activity },
     { 
       href: "/alerts", 
@@ -74,7 +111,8 @@ export function Sidebar() {
       </div>
 
       <div className="p-4 border-t border-sidebar-border shrink-0">
-        <div className="flex items-center gap-3 px-3 py-2 mb-2">
+        <ThemeToggle />
+        <div className="flex items-center gap-3 px-3 py-2 mb-2 mt-2">
           <div className="w-8 h-8 rounded-full bg-sidebar-primary/20 flex items-center justify-center text-sidebar-primary font-bold text-xs">
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </div>
