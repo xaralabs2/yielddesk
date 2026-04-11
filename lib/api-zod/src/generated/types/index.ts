@@ -41,6 +41,8 @@ export * from "./portfolioSummary";
 export * from "./signal";
 export * from "./signupBody";
 export * from "./signupBodyRole";
+export * from "./updateDealBody";
+export * from "./updateDealBodyRiskLevel";
 export * from "./updateHoldingBody";
 export * from "./updateHoldingBodyStatus";
 export * from "./updateHoldingBodyType";

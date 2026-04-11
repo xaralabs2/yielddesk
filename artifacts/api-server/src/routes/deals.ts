@@ -8,6 +8,9 @@ import {
   ListDealsResponse,
   ScoreDealParams,
   ScoreDealResponse,
+  UpdateDealBody,
+  UpdateDealParams,
+  DeleteDealParams,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 
@@ -65,6 +68,49 @@ router.get("/deals/:id", requireAuth, async (req, res): Promise<void> => {
 
   const score = scoreDeal(deal);
   res.json(GetDealResponse.parse({ deal, score }));
+});
+
+router.put("/deals/:id", requireAuth, async (req, res): Promise<void> => {
+  const params = UpdateDealParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const body = UpdateDealBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+
+  const [existing] = await db.select().from(dealsTable).where(eq(dealsTable.id, params.data.id));
+  if (!existing) {
+    res.status(404).json({ error: "Deal not found" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(dealsTable)
+    .set(body.data)
+    .where(eq(dealsTable.id, params.data.id))
+    .returning();
+  res.json(ListDealsResponse.element.parse(updated));
+});
+
+router.delete("/deals/:id", requireAuth, async (req, res): Promise<void> => {
+  const params = DeleteDealParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [existing] = await db.select().from(dealsTable).where(eq(dealsTable.id, params.data.id));
+  if (!existing) {
+    res.status(404).json({ error: "Deal not found" });
+    return;
+  }
+
+  await db.delete(dealsTable).where(eq(dealsTable.id, params.data.id));
+  res.status(204).send();
 });
 
 router.get("/deals/:id/score", requireAuth, async (req, res): Promise<void> => {

@@ -203,6 +203,23 @@ export interface CreateDealBody {
   riskLevel: CreateDealBodyRiskLevel;
 }
 
+export type UpdateDealBodyRiskLevel =
+  (typeof UpdateDealBodyRiskLevel)[keyof typeof UpdateDealBodyRiskLevel];
+
+export const UpdateDealBodyRiskLevel = {
+  LOW: "LOW",
+  MEDIUM: "MEDIUM",
+  HIGH: "HIGH",
+} as const;
+
+export interface UpdateDealBody {
+  issuer?: string;
+  rate?: number;
+  tenorDays?: number;
+  minAmount?: number;
+  riskLevel?: UpdateDealBodyRiskLevel;
+}
+
 export type DealScoreRecommendation =
   (typeof DealScoreRecommendation)[keyof typeof DealScoreRecommendation];
 

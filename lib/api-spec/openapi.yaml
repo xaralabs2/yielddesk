@@ -322,6 +322,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateDeal
+      tags: [deals]
+      summary: Update a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDealBody"
+      responses:
+        "200":
+          description: Deal updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteDeal
+      tags: [deals]
+      summary: Delete a deal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /deals/{id}/score:
     get:
@@ -760,6 +808,21 @@ components:
         - tenorDays
         - minAmount
         - riskLevel
+
+    UpdateDealBody:
+      type: object
+      properties:
+        issuer:
+          type: string
+        rate:
+          type: number
+        tenorDays:
+          type: integer
+        minAmount:
+          type: number
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
 
     DealWithScore:
       type: object

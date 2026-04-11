@@ -2,12 +2,14 @@ import { useState } from "react";
 import {
   useListDeals,
   useCreateDeal,
+  useUpdateDeal,
+  useDeleteDeal,
   useGetDeal,
   getListDealsQueryKey,
   getGetDealQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,10 +19,66 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, LineChart, Target } from "lucide-react";
+import { Plus, LineChart, Target, Pencil, Trash2 } from "lucide-react";
+
+type DealForm = {
+  issuer: string;
+  rate: string;
+  tenorDays: string;
+  minAmount: string;
+  riskLevel: string;
+};
+
+const emptyForm: DealForm = { issuer: "", rate: "", tenorDays: "", minAmount: "", riskLevel: "LOW" };
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(n);
+}
+
+function DealFormFields({
+  form,
+  setForm,
+  testIdPrefix,
+}: {
+  form: DealForm;
+  setForm: (f: DealForm) => void;
+  testIdPrefix: string;
+}) {
+  return (
+    <>
+      <div className="space-y-2">
+        <Label>Issuer</Label>
+        <Input value={form.issuer} onChange={(e) => setForm({ ...form, issuer: e.target.value })} required data-testid={`${testIdPrefix}-issuer`} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Rate (%)</Label>
+          <Input type="number" step="0.01" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} required data-testid={`${testIdPrefix}-rate`} />
+        </div>
+        <div className="space-y-2">
+          <Label>Tenor (days)</Label>
+          <Input type="number" value={form.tenorDays} onChange={(e) => setForm({ ...form, tenorDays: e.target.value })} required data-testid={`${testIdPrefix}-tenor`} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Min Amount</Label>
+          <Input type="number" step="0.01" value={form.minAmount} onChange={(e) => setForm({ ...form, minAmount: e.target.value })} required data-testid={`${testIdPrefix}-min`} />
+        </div>
+        <div className="space-y-2">
+          <Label>Risk Level</Label>
+          <Select value={form.riskLevel} onValueChange={(v) => setForm({ ...form, riskLevel: v })}>
+            <SelectTrigger data-testid={`${testIdPrefix}-risk`}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LOW">Low</SelectItem>
+              <SelectItem value="MEDIUM">Medium</SelectItem>
+              <SelectItem value="HIGH">High</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </>
+  );
 }
 
 function DealScoreCard({ dealId }: { dealId: number }) {
@@ -63,19 +121,24 @@ function DealScoreCard({ dealId }: { dealId: number }) {
 export default function DealsPage() {
   const { data: deals, isLoading } = useListDeals();
   const createMutation = useCreateDeal();
+  const updateMutation = useUpdateDeal();
+  const deleteMutation = useDeleteDeal();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [expandedDeal, setExpandedDeal] = useState<number | null>(null);
-  const [form, setForm] = useState({
-    issuer: "",
-    rate: "",
-    tenorDays: "",
-    minAmount: "",
-    riskLevel: "LOW",
-  });
+  const [editingDealId, setEditingDealId] = useState<number | null>(null);
+  const [deletingDealId, setDeletingDealId] = useState<number | null>(null);
+  const [form, setForm] = useState<DealForm>(emptyForm);
+  const [editForm, setEditForm] = useState<DealForm>(emptyForm);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const invalidateDeals = () => {
+    queryClient.invalidateQueries({ queryKey: getListDealsQueryKey() });
+  };
+
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     createMutation.mutate(
       {
@@ -90,12 +153,79 @@ export default function DealsPage() {
       {
         onSuccess: () => {
           toast({ title: "Deal created" });
-          queryClient.invalidateQueries({ queryKey: getListDealsQueryKey() });
+          invalidateDeals();
           setDialogOpen(false);
-          setForm({ issuer: "", rate: "", tenorDays: "", minAmount: "", riskLevel: "LOW" });
+          setForm(emptyForm);
         },
         onError: () => {
           toast({ title: "Failed to create deal", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const openEdit = (deal: { id: number; issuer: string; rate: number; tenorDays: number; minAmount: number; riskLevel: string }) => {
+    setEditingDealId(deal.id);
+    setEditForm({
+      issuer: deal.issuer,
+      rate: String(deal.rate),
+      tenorDays: String(deal.tenorDays),
+      minAmount: String(deal.minAmount),
+      riskLevel: deal.riskLevel,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDealId) return;
+    updateMutation.mutate(
+      {
+        id: editingDealId,
+        data: {
+          issuer: editForm.issuer,
+          rate: parseFloat(editForm.rate),
+          tenorDays: parseInt(editForm.tenorDays),
+          minAmount: parseFloat(editForm.minAmount),
+          riskLevel: editForm.riskLevel as "LOW" | "MEDIUM" | "HIGH",
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({ title: "Deal updated" });
+          invalidateDeals();
+          if (editingDealId) {
+            queryClient.invalidateQueries({ queryKey: getGetDealQueryKey(editingDealId) });
+          }
+          setEditDialogOpen(false);
+          setEditingDealId(null);
+        },
+        onError: () => {
+          toast({ title: "Failed to update deal", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const openDelete = (dealId: number) => {
+    setDeletingDealId(dealId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (!deletingDealId) return;
+    deleteMutation.mutate(
+      { id: deletingDealId },
+      {
+        onSuccess: () => {
+          toast({ title: "Deal deleted" });
+          invalidateDeals();
+          setDeleteDialogOpen(false);
+          setDeletingDealId(null);
+          if (expandedDeal === deletingDealId) setExpandedDeal(null);
+        },
+        onError: () => {
+          toast({ title: "Failed to delete deal", variant: "destructive" });
         },
       }
     );
@@ -106,6 +236,8 @@ export default function DealsPage() {
     MEDIUM: "border-warning/30 text-warning",
     HIGH: "border-destructive/30 text-destructive",
   };
+
+  const deletingDeal = deals?.find((d) => d.id === deletingDealId);
 
   if (isLoading) {
     return (
@@ -131,38 +263,8 @@ export default function DealsPage() {
             <DialogHeader>
               <DialogTitle>New Deal</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Issuer</Label>
-                <Input value={form.issuer} onChange={(e) => setForm({ ...form, issuer: e.target.value })} required data-testid="input-deal-issuer" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Rate (%)</Label>
-                  <Input type="number" step="0.01" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} required data-testid="input-deal-rate" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Tenor (days)</Label>
-                  <Input type="number" value={form.tenorDays} onChange={(e) => setForm({ ...form, tenorDays: e.target.value })} required data-testid="input-deal-tenor" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Min Amount</Label>
-                  <Input type="number" step="0.01" value={form.minAmount} onChange={(e) => setForm({ ...form, minAmount: e.target.value })} required data-testid="input-deal-min" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Risk Level</Label>
-                  <Select value={form.riskLevel} onValueChange={(v) => setForm({ ...form, riskLevel: v })}>
-                    <SelectTrigger data-testid="select-risk"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LOW">Low</SelectItem>
-                      <SelectItem value="MEDIUM">Medium</SelectItem>
-                      <SelectItem value="HIGH">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <DealFormFields form={form} setForm={setForm} testIdPrefix="input-deal" />
               <Button type="submit" className="w-full" disabled={createMutation.isPending} data-testid="button-submit-deal">
                 Create Deal
               </Button>
@@ -170,6 +272,42 @@ export default function DealsPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Deal</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdate} className="space-y-4">
+            <DealFormFields form={editForm} setForm={setEditForm} testIdPrefix="input-edit-deal" />
+            <Button type="submit" className="w-full" disabled={updateMutation.isPending} data-testid="button-save-deal">
+              Save Changes
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Deal</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete the deal from <span className="font-medium text-foreground">{deletingDeal?.issuer}</span>? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 justify-end mt-4">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {(!deals || deals.length === 0) ? (
         <Card>
@@ -188,15 +326,35 @@ export default function DealsPage() {
                     <span className="font-medium">{deal.issuer}</span>
                     <Badge variant="outline" className={`text-xs ${riskColors[deal.riskLevel] || ""}`}>{deal.riskLevel}</Badge>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1 text-xs"
-                    onClick={() => setExpandedDeal(expandedDeal === deal.id ? null : deal.id)}
-                    data-testid={`button-score-${deal.id}`}
-                  >
-                    <Target className="w-3 h-3" /> {expandedDeal === deal.id ? "Hide" : "Score"}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => openEdit(deal)}
+                      data-testid={`button-edit-${deal.id}`}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      onClick={() => openDelete(deal.id)}
+                      data-testid={`button-delete-${deal.id}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 text-xs ml-1"
+                      onClick={() => setExpandedDeal(expandedDeal === deal.id ? null : deal.id)}
+                      data-testid={`button-score-${deal.id}`}
+                    >
+                      <Target className="w-3 h-3" /> {expandedDeal === deal.id ? "Hide" : "Score"}
+                    </Button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>

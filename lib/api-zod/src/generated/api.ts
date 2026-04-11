@@ -255,6 +255,38 @@ export const GetDealResponse = zod.object({
 });
 
 /**
+ * @summary Update a deal
+ */
+export const UpdateDealParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateDealBody = zod.object({
+  issuer: zod.string().optional(),
+  rate: zod.number().optional(),
+  tenorDays: zod.number().optional(),
+  minAmount: zod.number().optional(),
+  riskLevel: zod.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+});
+
+export const UpdateDealResponse = zod.object({
+  id: zod.number(),
+  issuer: zod.string(),
+  rate: zod.number(),
+  tenorDays: zod.number(),
+  minAmount: zod.number(),
+  riskLevel: zod.enum(["LOW", "MEDIUM", "HIGH"]),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a deal
+ */
+export const DeleteDealParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
  * @summary Score a specific deal
  */
 export const ScoreDealParams = zod.object({

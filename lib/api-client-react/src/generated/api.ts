@@ -39,6 +39,7 @@ import type {
   PortfolioSummary,
   Signal,
   SignupBody,
+  UpdateDealBody,
   UpdateHoldingBody,
   User,
 } from "./api.schemas";
@@ -1234,6 +1235,177 @@ export function useGetDeal<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Update a deal
+ */
+export const getUpdateDealUrl = (id: number) => {
+  return `/api/deals/${id}`;
+};
+
+export const updateDeal = async (
+  id: number,
+  updateDealBody: UpdateDealBody,
+  options?: RequestInit,
+): Promise<Deal> => {
+  return customFetch<Deal>(getUpdateDealUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateDealBody),
+  });
+};
+
+export const getUpdateDealMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDeal>>,
+    TError,
+    { id: number; data: BodyType<UpdateDealBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDeal>>,
+  TError,
+  { id: number; data: BodyType<UpdateDealBody> },
+  TContext
+> => {
+  const mutationKey = ["updateDeal"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDeal>>,
+    { id: number; data: BodyType<UpdateDealBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateDeal(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDealMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDeal>>
+>;
+export type UpdateDealMutationBody = BodyType<UpdateDealBody>;
+export type UpdateDealMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a deal
+ */
+export const useUpdateDeal = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDeal>>,
+    TError,
+    { id: number; data: BodyType<UpdateDealBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateDeal>>,
+  TError,
+  { id: number; data: BodyType<UpdateDealBody> },
+  TContext
+> => {
+  return useMutation(getUpdateDealMutationOptions(options));
+};
+
+/**
+ * @summary Delete a deal
+ */
+export const getDeleteDealUrl = (id: number) => {
+  return `/api/deals/${id}`;
+};
+
+export const deleteDeal = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteDealUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteDealMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDeal>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDeal>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteDeal"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDeal>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteDeal(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDealMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDeal>>
+>;
+
+export type DeleteDealMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a deal
+ */
+export const useDeleteDeal = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDeal>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDeal>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteDealMutationOptions(options));
+};
 
 /**
  * @summary Score a specific deal
