@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import { desc, eq } from "drizzle-orm";
-import { db, cbnMarketDataTable } from "@workspace/db";
+import { db, cbnMarketDataTable, cbnPolicyRatesTable, cbnExchangeRatesTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/auth";
-import { syncCbnData, fetchCbnData } from "../lib/cbn-scraper";
+import { syncCbnData, syncPolicyRates, syncExchangeRates } from "../lib/cbn-scraper";
 
 const router: IRouter = Router();
 
@@ -103,6 +103,43 @@ router.post("/cbn/sync", requireAuth, async (_req, res): Promise<void> => {
       success: false,
       error: err.message,
     });
+  }
+});
+
+router.get("/cbn/policy-rates", requireAuth, async (_req, res): Promise<void> => {
+  const rates = await db
+    .select()
+    .from(cbnPolicyRatesTable)
+    .orderBy(desc(cbnPolicyRatesTable.year), desc(cbnPolicyRatesTable.month))
+    .limit(24);
+  res.json(rates);
+});
+
+router.get("/cbn/exchange-rates", requireAuth, async (_req, res): Promise<void> => {
+  const rates = await db
+    .select()
+    .from(cbnExchangeRatesTable)
+    .orderBy(desc(cbnExchangeRatesTable.rateDate))
+    .limit(50);
+
+  const grouped: Record<string, typeof rates> = {};
+  for (const r of rates) {
+    if (!grouped[r.currency]) grouped[r.currency] = [];
+    grouped[r.currency].push(r);
+  }
+  res.json({ rates: grouped, latest: rates.slice(0, 6) });
+});
+
+router.post("/cbn/sync-all", requireAuth, async (_req, res): Promise<void> => {
+  try {
+    const [market, policy, fx] = await Promise.all([
+      syncCbnData(),
+      syncPolicyRates(),
+      syncExchangeRates(),
+    ]);
+    res.json({ success: true, market, policy, fx });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

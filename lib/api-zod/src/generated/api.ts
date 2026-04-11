@@ -464,6 +464,69 @@ export const ListMaturingHoldingsResponse = zod.array(
 );
 
 /**
+ * @summary Get CBN money market indicators (MPR, interbank, T-Bill, deposit, lending rates)
+ */
+export const ListPolicyRatesResponseItem = zod.object({
+  id: zod.number(),
+  period: zod.string(),
+  year: zod.number(),
+  month: zod.number(),
+  mpr: zod.number().nullish(),
+  interBankCallRate: zod.number().nullish(),
+  treasuryBill: zod.number().nullish(),
+  savingsDeposit: zod.number().nullish(),
+  oneMonthDeposit: zod.number().nullish(),
+  threeMonthsDeposit: zod.number().nullish(),
+  sixMonthsDeposit: zod.number().nullish(),
+  twelveMonthsDeposit: zod.number().nullish(),
+  primeLending: zod.number().nullish(),
+  maxLending: zod.number().nullish(),
+  fetchedAt: zod.coerce.date(),
+});
+export const ListPolicyRatesResponse = zod.array(ListPolicyRatesResponseItem);
+
+/**
+ * @summary Get CBN official exchange rates for key currencies
+ */
+export const ListExchangeRatesResponse = zod.object({
+  rates: zod.record(
+    zod.string(),
+    zod.array(
+      zod.object({
+        id: zod.number(),
+        currency: zod.string(),
+        rateDate: zod.coerce.date(),
+        buyingRate: zod.number().nullish(),
+        centralRate: zod.number().nullish(),
+        sellingRate: zod.number().nullish(),
+        fetchedAt: zod.coerce.date(),
+      }),
+    ),
+  ),
+  latest: zod.array(
+    zod.object({
+      id: zod.number(),
+      currency: zod.string(),
+      rateDate: zod.coerce.date(),
+      buyingRate: zod.number().nullish(),
+      centralRate: zod.number().nullish(),
+      sellingRate: zod.number().nullish(),
+      fetchedAt: zod.coerce.date(),
+    }),
+  ),
+});
+
+/**
+ * @summary Trigger full CBN data sync (market, policy rates, exchange rates)
+ */
+export const SyncAllCbnDataResponse = zod.object({
+  success: zod.boolean(),
+  market: zod.object({}).passthrough().optional(),
+  policy: zod.object({}).passthrough().optional(),
+  fx: zod.object({}).passthrough().optional(),
+});
+
+/**
  * @summary Get admin system stats
  */
 export const GetAdminStatsResponse = zod.object({

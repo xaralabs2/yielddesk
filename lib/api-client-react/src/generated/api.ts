@@ -30,15 +30,18 @@ import type {
   DealWithScore,
   DecisionResult,
   ErrorResponse,
+  ExchangeRatesResponse,
   HealthStatus,
   Holding,
   ListAlertsParams,
   ListSignalsParams,
   LoginBody,
+  PolicyRate,
   PortfolioAnalytics,
   PortfolioSummary,
   Signal,
   SignupBody,
+  SyncAllResult,
   UpdateDealBody,
   UpdateHoldingBody,
   User,
@@ -2149,6 +2152,237 @@ export function useListMaturingHoldings<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get CBN money market indicators (MPR, interbank, T-Bill, deposit, lending rates)
+ */
+export const getListPolicyRatesUrl = () => {
+  return `/api/cbn/policy-rates`;
+};
+
+export const listPolicyRates = async (
+  options?: RequestInit,
+): Promise<PolicyRate[]> => {
+  return customFetch<PolicyRate[]>(getListPolicyRatesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListPolicyRatesQueryKey = () => {
+  return [`/api/cbn/policy-rates`] as const;
+};
+
+export const getListPolicyRatesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPolicyRates>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPolicyRates>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListPolicyRatesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listPolicyRates>>> = ({
+    signal,
+  }) => listPolicyRates({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPolicyRates>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListPolicyRatesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPolicyRates>>
+>;
+export type ListPolicyRatesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get CBN money market indicators (MPR, interbank, T-Bill, deposit, lending rates)
+ */
+
+export function useListPolicyRates<
+  TData = Awaited<ReturnType<typeof listPolicyRates>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPolicyRates>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListPolicyRatesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get CBN official exchange rates for key currencies
+ */
+export const getListExchangeRatesUrl = () => {
+  return `/api/cbn/exchange-rates`;
+};
+
+export const listExchangeRates = async (
+  options?: RequestInit,
+): Promise<ExchangeRatesResponse> => {
+  return customFetch<ExchangeRatesResponse>(getListExchangeRatesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListExchangeRatesQueryKey = () => {
+  return [`/api/cbn/exchange-rates`] as const;
+};
+
+export const getListExchangeRatesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listExchangeRates>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listExchangeRates>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListExchangeRatesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listExchangeRates>>
+  > = ({ signal }) => listExchangeRates({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listExchangeRates>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListExchangeRatesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listExchangeRates>>
+>;
+export type ListExchangeRatesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get CBN official exchange rates for key currencies
+ */
+
+export function useListExchangeRates<
+  TData = Awaited<ReturnType<typeof listExchangeRates>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listExchangeRates>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListExchangeRatesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Trigger full CBN data sync (market, policy rates, exchange rates)
+ */
+export const getSyncAllCbnDataUrl = () => {
+  return `/api/cbn/sync-all`;
+};
+
+export const syncAllCbnData = async (
+  options?: RequestInit,
+): Promise<SyncAllResult> => {
+  return customFetch<SyncAllResult>(getSyncAllCbnDataUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getSyncAllCbnDataMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof syncAllCbnData>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof syncAllCbnData>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["syncAllCbnData"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof syncAllCbnData>>,
+    void
+  > = () => {
+    return syncAllCbnData(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SyncAllCbnDataMutationResult = NonNullable<
+  Awaited<ReturnType<typeof syncAllCbnData>>
+>;
+
+export type SyncAllCbnDataMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Trigger full CBN data sync (market, policy rates, exchange rates)
+ */
+export const useSyncAllCbnData = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof syncAllCbnData>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof syncAllCbnData>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getSyncAllCbnDataMutationOptions(options));
+};
 
 /**
  * @summary Get admin system stats

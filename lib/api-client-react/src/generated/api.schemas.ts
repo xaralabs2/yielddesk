@@ -322,6 +322,67 @@ export interface AdminStats {
   activeUsers: number;
 }
 
+export interface PolicyRate {
+  id: number;
+  period: string;
+  year: number;
+  month: number;
+  /** @nullable */
+  mpr?: number | null;
+  /** @nullable */
+  interBankCallRate?: number | null;
+  /** @nullable */
+  treasuryBill?: number | null;
+  /** @nullable */
+  savingsDeposit?: number | null;
+  /** @nullable */
+  oneMonthDeposit?: number | null;
+  /** @nullable */
+  threeMonthsDeposit?: number | null;
+  /** @nullable */
+  sixMonthsDeposit?: number | null;
+  /** @nullable */
+  twelveMonthsDeposit?: number | null;
+  /** @nullable */
+  primeLending?: number | null;
+  /** @nullable */
+  maxLending?: number | null;
+  fetchedAt: string;
+}
+
+export interface ExchangeRate {
+  id: number;
+  currency: string;
+  rateDate: string;
+  /** @nullable */
+  buyingRate?: number | null;
+  /** @nullable */
+  centralRate?: number | null;
+  /** @nullable */
+  sellingRate?: number | null;
+  fetchedAt: string;
+}
+
+export type ExchangeRatesResponseRates = { [key: string]: ExchangeRate[] };
+
+export interface ExchangeRatesResponse {
+  rates: ExchangeRatesResponseRates;
+  latest: ExchangeRate[];
+}
+
+export type SyncAllResultMarket = { [key: string]: unknown };
+
+export type SyncAllResultPolicy = { [key: string]: unknown };
+
+export type SyncAllResultFx = { [key: string]: unknown };
+
+export interface SyncAllResult {
+  success: boolean;
+  market?: SyncAllResultMarket;
+  policy?: SyncAllResultPolicy;
+  fx?: SyncAllResultFx;
+}
+
 export type ListSignalsParams = {
   limit?: number;
 };

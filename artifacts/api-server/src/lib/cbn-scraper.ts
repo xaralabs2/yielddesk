@@ -1,4 +1,4 @@
-import { db, signalsTable, cbnMarketDataTable } from "@workspace/db";
+import { db, signalsTable, cbnMarketDataTable, cbnPolicyRatesTable, cbnExchangeRatesTable } from "@workspace/db";
 import { desc, eq, and, gte } from "drizzle-orm";
 import { logger } from "./logger";
 
@@ -7,6 +7,8 @@ const ENDPOINTS = {
   NTB: `${CBN_BASE}/GetAllSecuritiesNTB`,
   BOND: `${CBN_BASE}/GetAllSecuritiesFGNBond`,
   OMO: `${CBN_BASE}/GetAllSecuritiesOMO`,
+  MONEY_MARKET: `${CBN_BASE}/GetAllMoneyMarketIndicators`,
+  EXCHANGE_RATES: `${CBN_BASE}/GetAllExchangeRates`,
 };
 
 interface CbnApiRecord {
@@ -211,10 +213,22 @@ export function startCbnSync(intervalMs: number = 60 * 60 * 1000) {
   syncCbnData().catch((err) => {
     logger.error({ err }, "Initial CBN sync failed");
   });
+  syncPolicyRates().catch((err) => {
+    logger.error({ err }, "Initial policy rates sync failed");
+  });
+  syncExchangeRates().catch((err) => {
+    logger.error({ err }, "Initial exchange rates sync failed");
+  });
 
   syncInterval = setInterval(() => {
     syncCbnData().catch((err) => {
       logger.error({ err }, "Scheduled CBN sync failed");
+    });
+    syncPolicyRates().catch((err) => {
+      logger.error({ err }, "Scheduled policy rates sync failed");
+    });
+    syncExchangeRates().catch((err) => {
+      logger.error({ err }, "Scheduled exchange rates sync failed");
     });
   }, intervalMs);
 
@@ -226,4 +240,118 @@ export function stopCbnSync() {
     clearInterval(syncInterval);
     syncInterval = null;
   }
+}
+
+interface MoneyMarketRecord {
+  id: number;
+  tyear: number;
+  tmonth: number;
+  period: string;
+  interBankCallRate: string;
+  mrr: string;
+  mpr: string;
+  treasuryBill: string;
+  savingsDeposit: string;
+  oneMonthDeposit: string;
+  threeMonthsDeposit: string;
+  sixMonthsDeposit: string;
+  twelveMonthsDeposit: string;
+  primeLending: string;
+  maxLending: string;
+}
+
+interface ExchangeRateRecord {
+  id: number;
+  currency: string;
+  ratedate: string;
+  buyingrate: string;
+  centralrate: string;
+  sellingrate: string;
+}
+
+export async function syncPolicyRates(): Promise<{ recordsInserted: number }> {
+  const raw: MoneyMarketRecord[] = await fetchEndpoint(ENDPOINTS.MONEY_MARKET).catch((e) => {
+    logger.error({ err: e }, "Failed to fetch money market indicators");
+    return [];
+  });
+
+  let recordsInserted = 0;
+  const recent = raw.slice(0, 24);
+
+  for (const rec of recent) {
+    const existing = await db
+      .select()
+      .from(cbnPolicyRatesTable)
+      .where(
+        and(
+          eq(cbnPolicyRatesTable.year, rec.tyear),
+          eq(cbnPolicyRatesTable.month, rec.tmonth)
+        )
+      )
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(cbnPolicyRatesTable).values({
+        period: rec.period,
+        year: rec.tyear,
+        month: rec.tmonth,
+        mpr: parseNum(rec.mpr),
+        interBankCallRate: parseNum(rec.interBankCallRate),
+        treasuryBill: parseNum(rec.treasuryBill),
+        savingsDeposit: parseNum(rec.savingsDeposit),
+        oneMonthDeposit: parseNum(rec.oneMonthDeposit),
+        threeMonthsDeposit: parseNum(rec.threeMonthsDeposit),
+        sixMonthsDeposit: parseNum(rec.sixMonthsDeposit),
+        twelveMonthsDeposit: parseNum(rec.twelveMonthsDeposit),
+        primeLending: parseNum(rec.primeLending),
+        maxLending: parseNum(rec.maxLending),
+      });
+      recordsInserted++;
+    }
+  }
+
+  logger.info({ recordsInserted, totalFetched: raw.length }, "CBN policy rates sync complete");
+  return { recordsInserted };
+}
+
+const KEY_CURRENCIES = ["US DOLLAR", "POUNDS STERLING", "EURO", "SWISS FRANC", "CHINESE YUAN", "SOUTH AFRICAN RAND"];
+
+export async function syncExchangeRates(): Promise<{ recordsInserted: number }> {
+  const raw: ExchangeRateRecord[] = await fetchEndpoint(ENDPOINTS.EXCHANGE_RATES).catch((e) => {
+    logger.error({ err: e }, "Failed to fetch exchange rates");
+    return [];
+  });
+
+  let recordsInserted = 0;
+  const filtered = raw.filter((r) => KEY_CURRENCIES.includes(r.currency));
+
+  for (const rec of filtered) {
+    const rateDate = new Date(rec.ratedate);
+    if (isNaN(rateDate.getTime())) continue;
+
+    const existing = await db
+      .select()
+      .from(cbnExchangeRatesTable)
+      .where(
+        and(
+          eq(cbnExchangeRatesTable.currency, rec.currency),
+          eq(cbnExchangeRatesTable.rateDate, rateDate)
+        )
+      )
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(cbnExchangeRatesTable).values({
+        currency: rec.currency,
+        rateDate,
+        buyingRate: parseNum(rec.buyingrate),
+        centralRate: parseNum(rec.centralrate),
+        sellingRate: parseNum(rec.sellingrate),
+      });
+      recordsInserted++;
+    }
+  }
+
+  logger.info({ recordsInserted, totalFetched: raw.length }, "CBN exchange rates sync complete");
+  return { recordsInserted };
 }

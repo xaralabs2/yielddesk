@@ -548,6 +548,47 @@ paths:
                 items:
                   $ref: "#/components/schemas/Holding"
 
+  /cbn/policy-rates:
+    get:
+      operationId: listPolicyRates
+      tags: [market]
+      summary: Get CBN money market indicators (MPR, interbank, T-Bill, deposit, lending rates)
+      responses:
+        "200":
+          description: Policy rates list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PolicyRate"
+
+  /cbn/exchange-rates:
+    get:
+      operationId: listExchangeRates
+      tags: [market]
+      summary: Get CBN official exchange rates for key currencies
+      responses:
+        "200":
+          description: Exchange rates grouped by currency
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExchangeRatesResponse"
+
+  /cbn/sync-all:
+    post:
+      operationId: syncAllCbnData
+      tags: [market]
+      summary: Trigger full CBN data sync (market, policy rates, exchange rates)
+      responses:
+        "200":
+          description: Sync results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncAllResult"
+
   /admin/stats:
     get:
       operationId: getAdminStats
@@ -1037,3 +1078,100 @@ components:
         - totalAlerts
         - totalSignals
         - activeUsers
+
+    PolicyRate:
+      type: object
+      properties:
+        id:
+          type: integer
+        period:
+          type: string
+        year:
+          type: integer
+        month:
+          type: integer
+        mpr:
+          type: ["number", "null"]
+        interBankCallRate:
+          type: ["number", "null"]
+        treasuryBill:
+          type: ["number", "null"]
+        savingsDeposit:
+          type: ["number", "null"]
+        oneMonthDeposit:
+          type: ["number", "null"]
+        threeMonthsDeposit:
+          type: ["number", "null"]
+        sixMonthsDeposit:
+          type: ["number", "null"]
+        twelveMonthsDeposit:
+          type: ["number", "null"]
+        primeLending:
+          type: ["number", "null"]
+        maxLending:
+          type: ["number", "null"]
+        fetchedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - period
+        - year
+        - month
+        - fetchedAt
+
+    ExchangeRate:
+      type: object
+      properties:
+        id:
+          type: integer
+        currency:
+          type: string
+        rateDate:
+          type: string
+          format: date-time
+        buyingRate:
+          type: ["number", "null"]
+        centralRate:
+          type: ["number", "null"]
+        sellingRate:
+          type: ["number", "null"]
+        fetchedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - currency
+        - rateDate
+        - fetchedAt
+
+    ExchangeRatesResponse:
+      type: object
+      properties:
+        rates:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/ExchangeRate"
+        latest:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExchangeRate"
+      required:
+        - rates
+        - latest
+
+    SyncAllResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        market:
+          type: object
+        policy:
+          type: object
+        fx:
+          type: object
+      required:
+        - success

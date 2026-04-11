@@ -51,9 +51,12 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
   - `https://www.cbn.gov.ng/api/GetAllSecuritiesNTB` — Treasury Bills
   - `https://www.cbn.gov.ng/api/GetAllSecuritiesFGNBond` — FGN Bonds
   - `https://www.cbn.gov.ng/api/GetAllSecuritiesOMO` — Open Market Operations
-- Auto-syncs on server startup and every hour via `startCbnSync()`
+  - `https://www.cbn.gov.ng/api/GetAllMoneyMarketIndicators` — Policy/Money Market Indicators (MPR, Interbank Call Rate, T-Bill, Savings/1M/3M/6M/12M Deposit, Prime/Max Lending)
+  - `https://www.cbn.gov.ng/api/GetAllExchangeRates` — Official Exchange Rates (USD, GBP, EUR, CHF, CNY, ZAR)
+- Auto-syncs all feeds on server startup and every hour via `startCbnSync()`
 - Creates market signals from live NTB 364-day rate (CP proxy) and FGN Bond rate
-- Custom API endpoints: GET /api/cbn/rates-summary, GET /api/cbn/market-data, POST /api/cbn/sync
+- DB tables: `cbn_market_data` (auctions), `cbn_policy_rates` (monthly indicators), `cbn_exchange_rates` (daily FX)
+- API endpoints: GET /api/cbn/rates-summary, GET /api/cbn/market-data, GET /api/cbn/policy-rates, GET /api/cbn/exchange-rates, POST /api/cbn/sync, POST /api/cbn/sync-all
 
 ### Decision Engine Thresholds
 - CP rate >= 18% → INVEST_CP

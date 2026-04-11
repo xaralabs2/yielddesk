@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, TrendingUp, TrendingDown, Banknote, BarChart3 } from "lucide-react";
+import { RefreshCw, TrendingUp, TrendingDown, Banknote, BarChart3, Landmark, DollarSign } from "lucide-react";
 
 interface RateEntry {
   rate: number;
@@ -65,6 +65,54 @@ function useMarketData() {
     queryFn: async () => {
       const res = await fetch("/api/cbn/market-data", { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Failed to fetch market data");
+      return res.json();
+    },
+  });
+}
+
+interface PolicyRate {
+  id: number;
+  period: string;
+  year: number;
+  month: number;
+  mpr: number | null;
+  interBankCallRate: number | null;
+  treasuryBill: number | null;
+  savingsDeposit: number | null;
+  oneMonthDeposit: number | null;
+  threeMonthsDeposit: number | null;
+  sixMonthsDeposit: number | null;
+  twelveMonthsDeposit: number | null;
+  primeLending: number | null;
+  maxLending: number | null;
+}
+
+interface ExchangeRateEntry {
+  id: number;
+  currency: string;
+  rateDate: string;
+  buyingRate: number | null;
+  centralRate: number | null;
+  sellingRate: number | null;
+}
+
+function usePolicyRates() {
+  return useQuery<PolicyRate[]>({
+    queryKey: ["/api/cbn/policy-rates"],
+    queryFn: async () => {
+      const res = await fetch("/api/cbn/policy-rates", { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error("Failed to fetch policy rates");
+      return res.json();
+    },
+  });
+}
+
+function useExchangeRates() {
+  return useQuery<{ rates: Record<string, ExchangeRateEntry[]>; latest: ExchangeRateEntry[] }>({
+    queryKey: ["/api/cbn/exchange-rates"],
+    queryFn: async () => {
+      const res = await fetch("/api/cbn/exchange-rates", { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error("Failed to fetch exchange rates");
       return res.json();
     },
   });
@@ -155,6 +203,8 @@ function SecurityTable({ records, showSubscription }: { records: MarketRecord[];
 export default function MarketDataPage() {
   const { data: rates, isLoading: ratesLoading } = useRatesSummary();
   const { data: marketData, isLoading: dataLoading } = useMarketData();
+  const { data: policyRates } = usePolicyRates();
+  const { data: fxData } = useExchangeRates();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [syncing, setSyncing] = useState(false);
@@ -164,18 +214,20 @@ export default function MarketDataPage() {
     try {
       const headers = getAuthHeaders() as Record<string, string>;
       headers["Content-Type"] = "application/json";
-      const res = await fetch("/api/cbn/sync", {
+      const res = await fetch("/api/cbn/sync-all", {
         method: "POST",
         headers,
       });
       const result = await res.json();
       if (result.success) {
         toast({
-          title: "Market data refreshed",
-          description: `${result.recordsInserted} new records. CP: ${result.cpRate?.toFixed(2) ?? "N/A"}%, Bond: ${result.bondYield?.toFixed(2) ?? "N/A"}%`,
+          title: "All data refreshed",
+          description: "Market data, policy rates, and exchange rates updated",
         });
         queryClient.invalidateQueries({ queryKey: ["/api/cbn/rates-summary"] });
         queryClient.invalidateQueries({ queryKey: ["/api/cbn/market-data"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/cbn/policy-rates"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/cbn/exchange-rates"] });
       } else {
         toast({ title: "Sync failed", description: result.error, variant: "destructive" });
       }
@@ -329,6 +381,124 @@ export default function MarketDataPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card data-testid="card-policy-rates">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Landmark className="w-4 h-4" /> CBN Policy & Money Market Indicators
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {policyRates && policyRates.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
+                      <th className="px-4 py-3">Period</th>
+                      <th className="px-4 py-3">MPR</th>
+                      <th className="px-4 py-3">Interbank</th>
+                      <th className="px-4 py-3">T-Bill</th>
+                      <th className="px-4 py-3">Prime</th>
+                      <th className="px-4 py-3">Max Lend</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {policyRates.slice(0, 12).map((r) => (
+                      <tr key={r.id} className="border-b last:border-0 hover:bg-muted/50">
+                        <td className="px-4 py-3 font-medium">{r.period}</td>
+                        <td className="px-4 py-3 font-mono">{r.mpr != null ? `${r.mpr.toFixed(2)}%` : "---"}</td>
+                        <td className="px-4 py-3 font-mono">{r.interBankCallRate != null ? `${r.interBankCallRate.toFixed(2)}%` : "---"}</td>
+                        <td className="px-4 py-3 font-mono">{r.treasuryBill != null ? `${r.treasuryBill.toFixed(2)}%` : "---"}</td>
+                        <td className="px-4 py-3 font-mono">{r.primeLending != null ? `${r.primeLending.toFixed(2)}%` : "---"}</td>
+                        <td className="px-4 py-3 font-mono">{r.maxLending != null ? `${r.maxLending.toFixed(2)}%` : "---"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground p-4">No policy rate data yet. Click Refresh to sync.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-exchange-rates">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <DollarSign className="w-4 h-4" /> CBN Official Exchange Rates
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {fxData?.latest && fxData.latest.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
+                      <th className="px-4 py-3">Currency</th>
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Buying</th>
+                      <th className="px-4 py-3">Central</th>
+                      <th className="px-4 py-3">Selling</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fxData.latest.map((r) => (
+                      <tr key={r.id} className="border-b last:border-0 hover:bg-muted/50">
+                        <td className="px-4 py-3 font-medium">{r.currency}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{formatDate(r.rateDate)}</td>
+                        <td className="px-4 py-3 font-mono">{r.buyingRate != null ? `₦${r.buyingRate.toFixed(2)}` : "---"}</td>
+                        <td className="px-4 py-3 font-mono font-medium">{r.centralRate != null ? `₦${r.centralRate.toFixed(2)}` : "---"}</td>
+                        <td className="px-4 py-3 font-mono">{r.sellingRate != null ? `₦${r.sellingRate.toFixed(2)}` : "---"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground p-4">No exchange rate data yet. Click Refresh to sync.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {policyRates && policyRates.length > 0 && (
+        <Card data-testid="card-deposit-rates">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingDown className="w-4 h-4" /> Deposit Rate Trends
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
+                    <th className="px-4 py-3">Period</th>
+                    <th className="px-4 py-3">Savings</th>
+                    <th className="px-4 py-3">1-Month</th>
+                    <th className="px-4 py-3">3-Month</th>
+                    <th className="px-4 py-3">6-Month</th>
+                    <th className="px-4 py-3">12-Month</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {policyRates.slice(0, 12).map((r) => (
+                    <tr key={r.id} className="border-b last:border-0 hover:bg-muted/50">
+                      <td className="px-4 py-3 font-medium">{r.period}</td>
+                      <td className="px-4 py-3 font-mono">{r.savingsDeposit != null ? `${r.savingsDeposit.toFixed(2)}%` : "---"}</td>
+                      <td className="px-4 py-3 font-mono">{r.oneMonthDeposit != null ? `${r.oneMonthDeposit.toFixed(2)}%` : "---"}</td>
+                      <td className="px-4 py-3 font-mono">{r.threeMonthsDeposit != null ? `${r.threeMonthsDeposit.toFixed(2)}%` : "---"}</td>
+                      <td className="px-4 py-3 font-mono">{r.sixMonthsDeposit != null ? `${r.sixMonthsDeposit.toFixed(2)}%` : "---"}</td>
+                      <td className="px-4 py-3 font-mono">{r.twelveMonthsDeposit != null ? `${r.twelveMonthsDeposit.toFixed(2)}%` : "---"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
