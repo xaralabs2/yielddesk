@@ -40,10 +40,12 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - `cbn_market_data` — id, source, securityType (NTB|BOND|OMO), tenor, auctionDate, maturityDate, marginalRate, trueYield, amountOffered, totalSubscription, totalSuccessful, fetchedAt
 
 ### Money Market Rates
-- Three data sources: NTB/OMO proxy rates (from CBN), FMDQ scraping (NIBOR/OBB/Repo), and manual entry (dealer quotes/Bloomberg)
+- Four data sources: NTB/OMO proxy rates (from CBN), FMDQ scraping (NIBOR/OBB/Repo), GetEquity CP (live commercial paper), and manual entry (dealer quotes/Bloomberg)
 - DB table: `mm_rates` — source (FMDQ|MANUAL), rateType, tenor, rate, date, notes
 - FMDQ scraper: tries JSON APIs first (`/wp-json/fmdq/v1/nibor`, `/repo-obb`), falls back to HTML table scraping
-- API endpoints: GET /api/mm/rates, GET /api/mm/summary, POST /api/mm/rates, DELETE /api/mm/rates/:id, POST /api/mm/sync-fmdq
+- GetEquity integration: `getequity-client.ts` fetches all tokens from GetEquity staging API, filters to Debt/Fixed Interest/Fund types; endpoint GET /api/mm/getequity-cp
+- GetEquity base URL: `ge-exchange-staging-1.herokuapp.com/v1` (configurable via GETEQUITY_BASE_URL env var); auth via Bearer token (GETEQUITY_API_KEY secret)
+- API endpoints: GET /api/mm/rates, GET /api/mm/summary, POST /api/mm/rates, DELETE /api/mm/rates/:id, POST /api/mm/sync-fmdq, GET /api/mm/getequity-cp
 - Manual rate types: NIBOR, OBB, REPO, CALL, CP, MMF_YIELD
 
 ### CBN Data Feed

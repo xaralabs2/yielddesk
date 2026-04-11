@@ -3,6 +3,7 @@ import { desc, eq, and, gte } from "drizzle-orm";
 import { db, mmRatesTable, cbnMarketDataTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/auth";
 import { syncFmdqRates } from "../lib/fmdq-scraper";
+import { fetchGeCpTokens, isGetEquityConfigured } from "../lib/getequity-client";
 
 const router: IRouter = Router();
 
@@ -166,6 +167,19 @@ router.post("/mm/sync-fmdq", requireAuth, async (_req, res): Promise<void> => {
     res.json({ success: true, ...result });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.get("/mm/getequity-cp", requireAuth, async (_req, res): Promise<void> => {
+  if (!isGetEquityConfigured()) {
+    res.json({ configured: false, tokens: [] });
+    return;
+  }
+  try {
+    const tokens = await fetchGeCpTokens();
+    res.json({ configured: true, tokens });
+  } catch (err: any) {
+    res.status(500).json({ configured: true, tokens: [], error: err.message });
   }
 });
 
