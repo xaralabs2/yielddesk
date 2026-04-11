@@ -528,9 +528,9 @@ function ConfigDialog({ currentConfig, onClose }: { currentConfig: PortfolioDash
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="baseline-value">Baseline Portfolio Value (NGN)</Label>
+        <Label htmlFor="baseline-value">Total Invested / Cost Basis (NGN)</Label>
         <Input id="baseline-value" type="number" value={baseline} onChange={(e) => setBaseline(e.target.value)} data-testid="input-baseline" />
-        <p className="text-[10px] text-muted-foreground">Your total cost basis. Used to calculate nominal return.</p>
+        <p className="text-[10px] text-muted-foreground">The total amount you've invested across all pillars. Used to calculate your nominal and real returns — i.e. how much your portfolio has grown (or shrunk) from what you put in.</p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="target-value">Wealth Target (NGN)</Label>
@@ -1213,8 +1213,8 @@ export default function PortfolioPage() {
           <CardContent className="flex items-center gap-3 p-4">
             <Target className="h-5 w-5 text-muted-foreground shrink-0" />
             <div>
-              <p className="text-sm font-medium text-foreground">Set your baseline value</p>
-              <p className="text-xs text-muted-foreground">Click Configure to set your annual baseline. This enables nominal and real return tracking.</p>
+              <p className="text-sm font-medium text-foreground">Set your wealth target</p>
+              <p className="text-xs text-muted-foreground">Click Configure to set your wealth target. Your cost basis is auto-calculated from your holdings. The target lets you track how far you are from your goal.</p>
             </div>
           </CardContent>
         </Card>

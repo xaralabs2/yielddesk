@@ -135,7 +135,10 @@ export async function computePortfolioDashboard(
       }
     : DEFAULT_TARGETS;
 
-  const baselineValue = config?.baselineValue ?? 0;
+  const computedBaseline = holdings.reduce((sum, h) => sum + (h.entryValueNgn ?? h.valueNgn), 0);
+  const baselineValue = config?.baselineValue && config.baselineValue > 0
+    ? config.baselineValue
+    : computedBaseline;
   const inflation = latestMacro?.inflation ?? 0;
   const fxRate = latestMacro?.fxRate ?? 0;
 
