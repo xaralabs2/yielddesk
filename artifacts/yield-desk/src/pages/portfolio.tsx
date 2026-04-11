@@ -1003,21 +1003,24 @@ export default function PortfolioPage() {
 
   return (
     <div className="space-y-4 p-4 md:p-6 max-w-7xl mx-auto">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 flex-wrap">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Portfolio</h1>
-          <p className="text-xs text-muted-foreground">Three-pillar allocation tracker with inflation-adjusted returns</p>
+          <h2 className="text-xl font-bold tracking-tight" data-testid="text-portfolio-title">Wealth Portfolio</h2>
+          <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+            <span>Three-pillar allocation tracker with inflation-adjusted returns</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="text-xs text-muted-foreground"
-          >
-            <RefreshCw className={cn("h-3.5 w-3.5 mr-1", isRefreshing && "animate-spin")} />
-            {isRefreshing ? "refreshing..." : refreshLabel !== "--" ? `refreshed ${refreshLabel}` : "refresh"}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-[10px] text-emerald-500 font-semibold uppercase tracking-wider">Live</span>
+          </div>
+          <span className="text-[10px] text-muted-foreground/60 font-mono" data-testid="text-portfolio-refresh">refreshed {refreshLabel}</span>
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleRefresh} data-testid="button-refresh-portfolio">
+            <RefreshCw className={cn("h-3 w-3 transition-transform", isRefreshing && "animate-spin")} />
           </Button>
           <Dialog open={configOpen} onOpenChange={setConfigOpen}>
             <DialogTrigger asChild>
