@@ -65,7 +65,9 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - Storage adapter in `artifacts/api-server/src/lib/portfolio-storage.ts` implements `IPortfolioStorage` backed by Drizzle
 - DB tables: `portfolio_holdings` (userId, asset, ticker, pillar, valueNgn, shares, corridor, etc.), `portfolio_config` (targets, tolerance, baseline/target values)
 - API endpoints (shared module): GET /api/investments, GET /api/portfolio, POST /api/portfolio/holdings, PATCH /api/portfolio/holdings/:id, DELETE /api/portfolio/holdings/:id, POST /api/portfolio/config, POST /api/portfolio/parse-pdf
-- Frontend pages: `/investments` (investment-landscape.tsx), `/portfolio-engine` (portfolio-engine.tsx)
+- No standalone pages — features integrated into existing pages:
+  - Portfolio page (`portfolio.tsx`) enhanced with 3-pillar gauges, rebalance alerts, real/nominal return metrics, macro summary row
+  - Market Data page (`market-data.tsx`) enhanced with Investment Landscape section (instrument cards with real yields, risk, macro pills)
 - 3 pillars: STABILITY (T-Bills, MMF), INFLATION (Equities, Bonds), STRATEGIC (Real Estate)
 - `defaultQueryFn` in `lib/api-helpers.ts` handles auth token injection for all useQuery calls
 - Packages: multer, pdf-parse (externalized in esbuild build)

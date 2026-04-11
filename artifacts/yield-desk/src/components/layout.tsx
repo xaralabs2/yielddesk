@@ -14,8 +14,6 @@ import {
   Moon,
   Monitor,
   Coins,
-  TrendingUp,
-  Target,
 } from "lucide-react";
 import { useGetAlertCount, getGetAlertCountQueryKey } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
@@ -70,8 +68,6 @@ export function Sidebar() {
     { href: "/deals", label: "Deals", icon: LineChart },
     { href: "/market-data", label: "Market Data", icon: Landmark },
     { href: "/mm-rates", label: "Rates", icon: Coins },
-    { href: "/investments", label: "Investments", icon: TrendingUp },
-    { href: "/portfolio-engine", label: "3-Pillar Portfolio", icon: Target },
     { href: "/signals", label: "Signals", icon: Activity },
     { 
       href: "/alerts", 

@@ -6,7 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, TrendingUp, TrendingDown, Banknote, BarChart3, Landmark, DollarSign } from "lucide-react";
+import {
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  Banknote,
+  BarChart3,
+  Landmark,
+  DollarSign,
+  Shield,
+  Droplets,
+  Zap,
+  Wallet,
+  Building2,
+  CircleDollarSign,
+  ArrowUpRight,
+  ArrowDownRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RateEntry {
   rate: number;
@@ -118,9 +135,49 @@ function useExchangeRates() {
   });
 }
 
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(n * 1_000_000);
-}
+type InvestmentOption = {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  riskLevel: string;
+  liquidity: string;
+  volatility: string;
+  inflationProtection: string;
+  tenors?: { label: string; yieldRange: [number, number]; notes?: string }[];
+  nominalReturnRange: [number, number];
+  bestFor: string;
+  realYieldRange?: [number, number];
+};
+
+type InvestmentLandscapeData = {
+  investments: InvestmentOption[];
+  currentInflation: number;
+  currentMpr: number;
+  currentTbillRate: number | null;
+  fxRate: number;
+};
+
+const RISK_COLORS: Record<string, string> = {
+  "Very Low": "text-emerald-500",
+  "Low": "text-teal-500",
+  "Medium": "text-amber-500",
+  "High": "text-rose-500",
+};
+
+const PROTECTION_COLORS: Record<string, string> = {
+  "Weak": "text-rose-400",
+  "Weak-Moderate": "text-amber-400",
+  "Moderate": "text-teal-400",
+  "Strong": "text-emerald-400",
+};
+
+const CATEGORY_ICONS: Record<string, typeof Landmark> = {
+  "Fixed Income": Landmark,
+  "Cash & Near-Cash": Wallet,
+  "Equities": BarChart3,
+  "Real Assets": Building2,
+};
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return "---";
@@ -205,6 +262,10 @@ export default function MarketDataPage() {
   const { data: marketData, isLoading: dataLoading } = useMarketData();
   const { data: policyRates } = usePolicyRates();
   const { data: fxData } = useExchangeRates();
+  const { data: landscape } = useQuery<InvestmentLandscapeData>({
+    queryKey: ["/api/investments"],
+    refetchInterval: 60 * 1000,
+  });
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [syncing, setSyncing] = useState(false);
@@ -245,6 +306,20 @@ export default function MarketDataPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32" />)}
         </div>
+      </div>
+    );
+  }
+
+  if (!rates && !marketData) {
+    return (
+      <div className="p-6">
+        <Card className="border-destructive">
+          <CardContent className="py-8 text-center">
+            <BarChart3 className="w-8 h-8 mx-auto text-destructive mb-3" />
+            <h3 className="text-sm font-semibold mb-1">Failed to load market data</h3>
+            <p className="text-xs text-muted-foreground">Please try refreshing the page or click Sync to fetch the latest data.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -498,6 +573,110 @@ export default function MarketDataPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {landscape && landscape.investments.length > 0 && (
+        <div className="space-y-4" data-testid="section-investment-landscape">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <CircleDollarSign className="w-4 h-4 text-primary" />
+                Investment Landscape
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Real yields calculated against {landscape.currentInflation.toFixed(1)}% CPI inflation
+              </p>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge variant="outline" className="text-[10px] font-mono">CPI {landscape.currentInflation.toFixed(1)}%</Badge>
+              <Badge variant="outline" className="text-[10px] font-mono">MPR {landscape.currentMpr.toFixed(1)}%</Badge>
+              {landscape.currentTbillRate != null && (
+                <Badge variant="outline" className="text-[10px] font-mono">T-Bill {landscape.currentTbillRate.toFixed(1)}%</Badge>
+              )}
+              <Badge variant="outline" className="text-[10px] font-mono">FX ₦{landscape.fxRate.toLocaleString(undefined, { minimumFractionDigits: 0 })}</Badge>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {landscape.investments.map((inv) => {
+              const CategoryIcon = CATEGORY_ICONS[inv.category] || CircleDollarSign;
+              return (
+                <Card key={inv.id} data-testid={`investment-card-${inv.id}`}>
+                  <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3 p-4">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CategoryIcon className="h-4 w-4 text-primary shrink-0" />
+                        <h3 className="text-sm font-bold tracking-tight">{inv.name}</h3>
+                      </div>
+                      <Badge variant="secondary" className="text-[9px] uppercase tracking-wider">{inv.category}</Badge>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-lg font-bold font-mono tabular-nums text-foreground">
+                        {inv.nominalReturnRange[0]}–{inv.nominalReturnRange[1]}%
+                      </span>
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Nominal</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3 p-4 pt-0">
+                    <p className="text-xs text-muted-foreground leading-relaxed">{inv.description}</p>
+
+                    {inv.tenors && inv.tenors.length > 0 && (
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Tenor Breakdown</span>
+                        <div className="space-y-1">
+                          {inv.tenors.map((tenor, i) => (
+                            <div key={i} className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">{tenor.label}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono tabular-nums font-medium text-foreground">
+                                  {tenor.yieldRange[0]}–{tenor.yieldRange[1]}%
+                                </span>
+                                {tenor.notes && (
+                                  <span className="text-[10px] text-muted-foreground/60 hidden sm:inline">{tenor.notes}</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-1 border-t border-border/50">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="inline-flex items-center gap-1 text-[10px]">
+                          <Shield className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">Risk:</span>
+                          <span className={cn("font-semibold", RISK_COLORS[inv.riskLevel] || "text-muted-foreground")}>{inv.riskLevel}</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px]">
+                          <Droplets className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">Liquidity:</span>
+                          <span className="text-muted-foreground font-medium">{inv.liquidity}</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px]">
+                          <Zap className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">Inflation:</span>
+                          <span className={cn("font-medium", PROTECTION_COLORS[inv.inflationProtection] || "text-muted-foreground")}>{inv.inflationProtection}</span>
+                        </span>
+                      </div>
+                      {inv.realYieldRange && (
+                        <span className={cn(
+                          "inline-flex items-center gap-1 text-[10px] font-mono tabular-nums font-semibold",
+                          ((inv.realYieldRange[0] + inv.realYieldRange[1]) / 2) > 0 ? "text-emerald-500" : "text-rose-500"
+                        )}>
+                          {((inv.realYieldRange[0] + inv.realYieldRange[1]) / 2) > 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                          {inv.realYieldRange[0] > 0 ? "+" : ""}{inv.realYieldRange[0].toFixed(1)}% to {inv.realYieldRange[1] > 0 ? "+" : ""}{inv.realYieldRange[1].toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-[10px] text-muted-foreground/60 italic">{inv.bestFor}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
       )}
     </div>
   );
