@@ -1,0 +1,336 @@
+Portfolio
+Three-pillar allocation tracker with inflation-adjusted returns
+Live
+refreshed 10s ago
+
+Configure
+Upload PDF
+Add Holding
+Wealth Target
+₦1.00B
+Stability
+0.13%
+Inflation Hedge
+0.83%
+Strategic
+82.48%
+Current Value
+
+₦834.46M
+
+Achieved
+
+83.45%
+
+Growth Needed
+
+1.20x
+
+Gap
+
+₦165.54M
+
+Total Value
+
+₦834.46M
+83.45% of ₦1.00B
+
+Nominal Return
+
++14.98%
+Baseline: ₦725.75M
+
+Real Return
+
+-0.07%
+CPI: 15.06%
+
+Available Cash
+
+₦0.00
+Brokerage cash balance
+
+Capital Deployed
+
+₦725.75M
+All pillars total cost
+
+Commissions
+
+₦129,721.87
+NGX brokerage (1.35%)
+
+Total Costs
+
+₦223,409.89
+Fees ₦86,481.25 + Duty ₦7,206.77
+
+Cost Drag
+
+0.03%
+All costs vs capital deployed
+
+Stability
+10% of Goal
+₦1,259,893.97
+of ₦100.00M
+Progress
+1.26%
+Gap to Goal
+₦98.74M
+FGS202772
+₦658,244.90
+0.66%
+VSPBONDETF
+₦601,649.07
+0.60%
+Inflation Hedge
+15% of Goal
+₦8,349,133.40
+of ₦150.00M
+Progress
+5.57%
+Gap to Goal
+₦141.65M
+ACCESSCORP
+₦3,369,600.00
+2.25%
+FCMB
+₦2,320,000.00
+1.55%
+ZENITHBANK
+₦1,120,000.00
+0.75%
+GTCO
+₦663,660.00
+0.44%
+UBA
+₦430,050.00
+0.29%
+PRESCO
+₦306,900.00
+0.20%
+SUNUASSUR
+₦138,923.40
+0.09%
+Strategic
+75% of Goal
+₦824,848,201.31
+of ₦750.00M
+Progress
+109.98%
+Gap to Goal
+₦0.00
+Lekki 1 - Camberwall Advantage 5
+₦471,024,384.57
+62.80%
+Alaro City - land
+₦164,000,550.01
+21.87%
+De Avocado - Abijo GRA
+₦74,994,975.69
+10.00%
+MHK - Olunde - Ibadan
+₦70,000,195.84
+9.33%
+Itunu Hills
+₦44,828,095.20
+5.98%
+Rebalance Signals
+Stability -9.85%
+Refill cash reserves — sell gains from Inflation or Strategic pillars
+Inflation Hedge -14.00%
+Increase exposure to inflation-linked assets (banks, cement, energy equities)
+Strategic +23.85%
+Consider partial exits or rebalance into more liquid positions
+All Holdings
+29 positions
+Asset	Pillar	Qty	Cost Price	Current Price	Value (NGN)	Yield / IRR	Weight	vs Target	Actions
+Stability
+2 positions
+₦1,259,893.97
+FGS202772
+Stability	500	₦1,316.49	
+—
+NO FEED
+₦658,244.90
+AT COST
+-	0.08%	0.0658%	
+
+
+VSPBONDETF
+Stability	2,600	₦231.40	
+—
+NO FEED
+₦601,649.07
+AT COST
+-	0.07%	0.0602%	
+
+
+Inflation Hedge
+7 positions
+₦8,349,133.40
+PRESCO
+Inflation Hedge	155	₦1,491.21	
+₦1,980.00
+NGX LIVE
+₦306,900.00	
++32.78%
+gain · cost ₦231,137.71
+0.04%	0.0307%	
+
+
+ZENITHBANK
+Inflation Hedge	10,000	₦67.06	
+₦112.00
+NGX LIVE
+₦1,120,000.00	
++67.02%
+gain · cost ₦670,569.5
+0.13%	0.1120%	
+
+
+ACCESSCORP
+Inflation Hedge	129,600	₦26.54	
+₦26.00
+NGX LIVE
+₦3,369,600.00	
+-2.04%
+loss · cost ₦3,439,659.34
+0.40%	0.3370%	
+
+
+SUNUASSUR
+Inflation Hedge	33,077	₦5.53	
+₦4.20
+NGX LIVE
+₦138,923.40	
+-24.05%
+loss · cost ₦182,903.75
+0.02%	0.0139%	
+
+
+UBA
+Inflation Hedge	9,150	₦43.58	
+₦47.00
+NGX LIVE
+₦430,050.00	
++7.84%
+gain · cost ₦398,800.06
+0.05%	0.0430%	
+
+
+GTCO
+Inflation Hedge	4,916	₦95.83	
+₦135.00
+NGX LIVE
+₦663,660.00	
++40.87%
+gain · cost ₦471,110.54
+0.08%	0.0664%	
+
+
+FCMB
+Inflation Hedge	200,000	₦10.00	
+₦11.60
+NGX LIVE
+₦2,320,000.00	
++16.00%
+gain · cost ₦2,000,000
+0.28%	0.2320%	
+
+
+Strategic
+5 positions
+₦824,848,201.31
+Alaro City - land· Other
+Strategic	-	-	-	₦164,000,550.01	-	19.65%	16.4001%	
+
+
+Lekki 1 - Camberwall Advantage 5· Lekki Phase 1
+Strategic	-	-	-	₦471,024,384.57	-	56.45%	47.1024%	
+
+
+De Avocado - Abijo GRA· Ibeju Lekki
+Strategic	-	-	-	₦74,994,975.69	
+4.00%
+8.99%	7.4995%	
+
+
+MHK - Olunde - Ibadan· Other
+Strategic	-	-	-	₦70,000,195.84	-	8.39%	7.0000%	
+
+
+Itunu Hills· Ibeju Lekki
+Strategic	-	-	-	₦44,828,095.20	-	5.37%	4.4828%	
+
+
+Inflation is eroding your wealth
+
+Your portfolio grew 14.98% but inflation is 15.06%. Real purchasing power declined by 0.07%. Consider increasing exposure to inflation-linked assets.
+
+ETF Signal Tracker
+Tight Liquidity
+Current Regime
+
+Tight Liquidity
+
+Regime Confidence
+
+47%
+
+ETF	Signal	Confidence	Reasoning
+VETBANK
+Vetiva Banking ETF
+BUY	85%	Banks benefit from higher NIM in tight monetary policy
+VETGOODS
+Vetiva Consumer Goods ETF
+HOLD	65%	Consumer spending constrained by high rates
+VETINDETF
+Vetiva Industrial ETF
+HOLD	60%	Industrial activity slows with tighter credit
+VSPBONDETF
+Vetiva S&P Bond ETF
+BUY	80%	High yields make bonds attractive for income
+GREENWETF
+Greenwich Alpha ETF
+HOLD	65%	Alpha constrained in tight liquidity
+MERGROWTH
+Meristem Growth ETF
+SELL	75%	Growth stocks suffer from rate compression
+MERVALUE
+Meristem Value ETF
+BUY	80%	Value factor outperforms in tightening cycles
+Directional signals are derived from the current macro regime (Tight Liquidity) using live CBN, NBS, and market data. These are research indicators — not allocation recommendations or portfolio instructions.
+
+Operating Guide
+The Three Pillars
+Stability (10%)
+Bonds, ETFs, Money Market Funds, short-duration instruments. Provides liquidity and prevents forced selling. Risk: inflation may exceed returns.
+
+Inflation Hedge (15%)
+Bank stocks, cement, energy equities, productive assets that reprice with inflation. This is where real wealth grows in Nigeria.
+
+Strategic (75%)
+Property, SPVs, private deals. The core wealth engine. Low liquidity but strong long-term store of value.
+
+Monthly Routine (10 minutes)
+1.
+Update your holding values in the tracker
+2.
+Check pillar weights and drift signals
+3.
+If no alerts appear, do nothing. Discipline is wealth.
+When Rebalance Alerts Trigger
+Stability too high
+Deploy into productive assets
+Inflation pillar too large
+Harvest gains, refill liquidity
+Strategic underweight
+Allocate to property/SPVs
+Real return negative
+Reassess allocation urgently
+Real Return: The Key Metric
+Nigeria wealth destruction happens silently through inflation. A portfolio growing 12% when inflation is 15% means you are losing purchasing power. This tracker uses Fisher-adjusted real returns to show you the truth: whether your wealth is actually growing after inflation.
+
+This is an allocation-driven system, not a trading dashboard. Update values monthly or quarterly. The system recalculates automatically using live inflation data.
