@@ -76,6 +76,13 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - `defaultQueryFn` in `lib/api-helpers.ts` handles auth token injection for all useQuery calls
 - Packages: multer, pdf-parse (externalized in esbuild build)
 
+### AI-Powered Features
+- **AI Market Brief** (Rates page) — Sends current NTB/OMO/FMDQ/CP rates to GPT-4o-mini, returns markdown market intelligence briefing with trend analysis, anomalies, strategic implications
+- **AI Deal Screening** (Deals page, GetEquity Deal Room tab) — Screens all GetEquity deals against NTB benchmarks, ranks top picks with ratings (Strong Buy/Buy/Hold/Avoid), risk assessment, portfolio fit commentary
+- Uses Replit AI Integrations (OpenAI proxy) — no API key needed, env vars: `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`
+- Backend routes: `POST /api/ai/market-brief`, `POST /api/ai/deal-screening`
+- Dependency: `openai` SDK + `@workspace/integrations-openai-ai-server` workspace package
+
 ### Decision Engine Thresholds
 - CP rate >= 18% → INVEST_CP
 - Bond yield >= 17% → LOCK_BONDS

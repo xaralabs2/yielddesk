@@ -21,7 +21,21 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, LineChart, Target, Pencil, Trash2, Landmark } from "lucide-react";
+import { Plus, LineChart, Target, Pencil, Trash2, Landmark, Sparkles, X } from "lucide-react";
+
+function renderMarkdown(md: string): string {
+  return md
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-4 mb-2">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mt-4 mb-2">$1</h2>')
+    .replace(/^#### (.+)$/gm, '<h4 class="text-sm font-semibold mt-3 mb-1">$1</h4>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal">$2</li>')
+    .replace(/\n{2,}/g, '<br/><br/>')
+    .replace(/\n/g, '<br/>');
+}
 
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");
@@ -187,6 +201,31 @@ function DealScoreCard({ dealId }: { dealId: number }) {
 
 function GetEquityDealRoom() {
   const { data: geDeals, isLoading } = useGeDeals();
+  const { toast } = useToast();
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+
+  const handleAiScreening = async () => {
+    setAiLoading(true);
+    setAiOpen(true);
+    try {
+      const headers = getAuthHeaders();
+      headers["Content-Type"] = "application/json";
+      const res = await fetch("/api/ai/deal-screening", { method: "POST", headers, body: JSON.stringify({}) });
+      if (!res.ok) throw new Error("Request failed");
+      const data = await res.json();
+      if (data.analysis) {
+        setAiAnalysis(data.analysis);
+      } else {
+        toast({ title: "Failed to screen deals", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Failed to screen deals", variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -217,7 +256,49 @@ function GetEquityDealRoom() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={handleAiScreening}
+          disabled={aiLoading}
+          data-testid="button-ai-screening"
+        >
+          <Sparkles className="w-4 h-4" /> {aiLoading ? "Screening..." : "AI Deal Screening"}
+        </Button>
+      </div>
+
+      {aiOpen && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Sparkles className="w-4 h-4 text-primary" /> AI Deal Screening Analysis
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setAiOpen(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {aiLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/6" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/6" />
+              </div>
+            ) : aiAnalysis ? (
+              <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis) }} />
+            ) : null}
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {(geDeals?.deals ?? []).map((d) => {
         const raisePct = d.raise_amount > 0 ? Math.min(100, (d.total_raised / d.raise_amount) * 100) : 0;
         const isOpen = !d.completed_raise && !d.closed && !d.exited;
@@ -322,6 +403,7 @@ function GetEquityDealRoom() {
           </Card>
         );
       })}
+      </div>
     </div>
   );
 }

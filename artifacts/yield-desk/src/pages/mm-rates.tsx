@@ -10,7 +10,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, Plus, Trash2, TrendingUp, Building2, PenLine, ArrowUpRight, Landmark } from "lucide-react";
+import { RefreshCw, Plus, Trash2, TrendingUp, Building2, PenLine, ArrowUpRight, Landmark, Sparkles, X } from "lucide-react";
+
+function renderMarkdown(md: string): string {
+  return md
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-4 mb-2">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mt-4 mb-2">$1</h2>')
+    .replace(/^#### (.+)$/gm, '<h4 class="text-sm font-semibold mt-3 mb-1">$1</h4>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal">$2</li>')
+    .replace(/\n{2,}/g, '<br/><br/>')
+    .replace(/\n/g, '<br/>');
+}
 
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");
@@ -168,6 +182,9 @@ export default function MmRatesPage() {
   const { toast } = useToast();
   const [syncingFmdq, setSyncingFmdq] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [aiBrief, setAiBrief] = useState<string | null>(null);
+  const [aiBriefLoading, setAiBriefLoading] = useState(false);
+  const [aiBriefOpen, setAiBriefOpen] = useState(false);
   const [form, setForm] = useState({
     rateType: "NIBOR",
     tenor: "O/N",
@@ -179,6 +196,27 @@ export default function MmRatesPage() {
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/mm/summary"] });
     queryClient.invalidateQueries({ queryKey: ["/api/mm/rates"] });
+  };
+
+  const handleAiBrief = async () => {
+    setAiBriefLoading(true);
+    setAiBriefOpen(true);
+    try {
+      const headers = getAuthHeaders();
+      headers["Content-Type"] = "application/json";
+      const res = await fetch("/api/ai/market-brief", { method: "POST", headers });
+      if (!res.ok) throw new Error("Request failed");
+      const data = await res.json();
+      if (data.brief) {
+        setAiBrief(data.brief);
+      } else {
+        toast({ title: "Failed to generate brief", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Failed to generate brief", variant: "destructive" });
+    } finally {
+      setAiBriefLoading(false);
+    }
   };
 
   const handleFmdqSync = async () => {
@@ -269,6 +307,16 @@ export default function MmRatesPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={handleAiBrief}
+            disabled={aiBriefLoading}
+            data-testid="button-ai-brief"
+          >
+            <Sparkles className="w-4 h-4" /> {aiBriefLoading ? "Analyzing..." : "AI Market Brief"}
+          </Button>
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2" data-testid="button-add-mm-rate">
@@ -433,6 +481,34 @@ export default function MmRatesPage() {
           </div>
         </CardContent>
       </Card>
+
+      {aiBriefOpen && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Sparkles className="w-4 h-4 text-primary" /> AI Market Intelligence Brief
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setAiBriefOpen(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {aiBriefLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/6" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/6" />
+              </div>
+            ) : aiBrief ? (
+              <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: renderMarkdown(aiBrief) }} />
+            ) : null}
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="proxy" data-testid="tabs-mm-rates">
         <TabsList>

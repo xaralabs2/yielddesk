@@ -9,6 +9,7 @@ import decisionRouter from "./decision";
 import adminRouter from "./admin";
 import cbnRouter from "./cbn";
 import mmRatesRouter from "./mm-rates";
+import aiRouter from "./ai";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(decisionRouter);
 router.use(adminRouter);
 router.use(cbnRouter);
 router.use(mmRatesRouter);
+router.use(aiRouter);
 
 export default router;
