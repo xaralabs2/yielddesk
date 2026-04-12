@@ -77,11 +77,14 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - Packages: multer, pdf-parse (externalized in esbuild build)
 
 ### AI-Powered Features
-- **AI Market Brief** (Rates page) — Sends current NTB/OMO/FMDQ/CP rates to GPT-4o-mini, returns markdown market intelligence briefing with trend analysis, anomalies, strategic implications
-- **AI Deal Screening** (Deals page, GetEquity Deal Room tab) — Screens all GetEquity deals against NTB benchmarks, ranks top picks with ratings (Strong Buy/Buy/Hold/Avoid), risk assessment, portfolio fit commentary
-- Uses Replit AI Integrations (OpenAI proxy) — no API key needed, env vars: `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`
+- **AI Market Brief** (Rates page) — Sends current NTB/OMO/FMDQ/CP rates to AI, returns markdown market intelligence briefing with trend analysis, anomalies, strategic implications
+- **AI Deal Screening** (Deals page, GetEquity Deal Room tab) — Screens open GetEquity deals against NTB benchmarks, ranks top picks with ratings (Strong Buy/Buy/Hold/Avoid), risk assessment, portfolio fit commentary
+- Uses custom YieldDesk AI platform at `http://209.38.100.198:8000` (multi-tenant multi-LLM, Mistral-powered)
+- Auth: `X-Tenant`/`X-Tenant-ID` headers + `Authorization: Bearer` + `X-API-Key`; tenant: `yielddesk`
+- Endpoint: `POST /v1/runs` with `{prompt, task_type}` body; returns `{text, model_used, provider, latency_ms, ...}`
+- Env vars: `YIELDDESK_AI_BASE_URL`, `YIELDDESK_AI_TENANT_ID`, `YIELDDESK_AI_API_KEY` (secret)
+- Platform has 5000 char prompt limit — deal screening uses condensed single-line format
 - Backend routes: `POST /api/ai/market-brief`, `POST /api/ai/deal-screening`
-- Dependency: `openai` SDK + `@workspace/integrations-openai-ai-server` workspace package
 
 ### Decision Engine Thresholds
 - CP rate >= 18% → INVEST_CP

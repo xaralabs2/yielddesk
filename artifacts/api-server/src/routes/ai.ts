@@ -3,27 +3,48 @@ import { desc, eq } from "drizzle-orm";
 import { db, mmRatesTable, cbnMarketDataTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/auth";
 import { fetchGeCpTokens, fetchAllDeals, isGetEquityConfigured } from "../lib/getequity-client";
-import OpenAI from "openai";
 
-let _openai: OpenAI | null = null;
-function getOpenAI(): OpenAI {
-  if (!_openai) {
-    _openai = new OpenAI({
-      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-    });
+const AI_BASE_URL = process.env.YIELDDESK_AI_BASE_URL || "http://209.38.100.198:8000";
+const AI_TENANT_ID = process.env.YIELDDESK_AI_TENANT_ID || "yielddesk";
+
+function getAiHeaders(): Record<string, string> {
+  const apiKey = process.env.YIELDDESK_AI_API_KEY || "";
+  return {
+    "Content-Type": "application/json",
+    "X-Tenant": AI_TENANT_ID,
+    "X-Tenant-ID": AI_TENANT_ID,
+    "X-API-Key": apiKey,
+    "Authorization": `Bearer ${apiKey}`,
+  };
+}
+
+async function runAiPrompt(prompt: string, taskType: string = "fast"): Promise<string> {
+  const res = await fetch(`${AI_BASE_URL}/v1/runs`, {
+    method: "POST",
+    headers: getAiHeaders(),
+    body: JSON.stringify({ prompt, task_type: taskType }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`AI platform error (${res.status}): ${err}`);
   }
-  return _openai;
+  const data = await res.json() as any;
+  return data.text || data.result || data.output || JSON.stringify(data);
+}
+
+function isAiConfigured(): boolean {
+  return !!(process.env.YIELDDESK_AI_API_KEY && process.env.YIELDDESK_AI_BASE_URL);
 }
 
 const router: IRouter = Router();
 
 router.post("/ai/market-brief", requireAuth, async (_req, res): Promise<void> => {
   try {
-    if (!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || !process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+    if (!isAiConfigured()) {
       res.status(503).json({ error: "AI integration not configured" });
       return;
     }
+
     const fmdqRates = await db
       .select()
       .from(mmRatesTable)
@@ -92,12 +113,7 @@ router.post("/ai/market-brief", requireAuth, async (_req, res): Promise<void> =>
       })),
     }, null, 0);
 
-    const completion = await getOpenAI().chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are a senior Nigerian fixed income market analyst at a top-tier investment bank. You provide concise, actionable market intelligence for institutional investors.
+    const prompt = `You are a senior Nigerian fixed income market analyst at a top-tier investment bank. You provide concise, actionable market intelligence for institutional investors.
 
 Your analysis should cover:
 1. **Market Snapshot** — Current rate levels across NTB, OMO, FMDQ (NIBOR, OBB, Repo), and CP markets
@@ -106,16 +122,13 @@ Your analysis should cover:
 4. **Strategic Implications** — What this means for portfolio positioning (favor short/long duration, CP vs bonds, etc.)
 5. **Risk Factors** — Key risks to watch (CBN policy, liquidity, FX pressure, etc.)
 
-Keep it professional, data-driven, and under 400 words. Use bullet points for clarity. Reference specific rates and dates where available. Currency is NGN.`
-        },
-        {
-          role: "user",
-          content: `Generate a market intelligence brief based on the following current market data:\n\n${ratesContext}`
-        }
-      ],
-    });
+Keep it professional, data-driven, and under 400 words. Use bullet points for clarity. Reference specific rates and dates where available. Currency is NGN.
 
-    const brief = completion.choices[0]?.message?.content || "Unable to generate market brief.";
+Generate a market intelligence brief based on the following current market data:
+
+${ratesContext}`;
+
+    const brief = await runAiPrompt(prompt, "fast");
     res.json({ brief, generatedAt: new Date().toISOString() });
   } catch (err: any) {
     console.error("AI market brief error:", err);
@@ -125,7 +138,7 @@ Keep it professional, data-driven, and under 400 words. Use bullet points for cl
 
 router.post("/ai/deal-screening", requireAuth, async (req, res): Promise<void> => {
   try {
-    if (!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || !process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+    if (!isAiConfigured()) {
       res.status(503).json({ error: "AI integration not configured" });
       return;
     }
@@ -149,67 +162,20 @@ router.post("/ai/deal-screening", requireAuth, async (req, res): Promise<void> =
 
     const portfolioContext = req.body?.portfolio || null;
 
-    const dealsContext = JSON.stringify({
-      benchmark: {
-        ntbRate: benchmarkRate,
-        description: "Highest recent NTB auction stop rate",
-      },
-      portfolio: portfolioContext,
-      deals: deals.slice(0, 30).map((d: any) => ({
-        id: d._id,
-        name: d.name,
-        symbol: d.symbol,
-        type: d.investment_type,
-        category: d.investment_category,
-        interest: d.interest,
-        tenor: d.tenor,
-        risk: d.risk,
-        rating: d.rating,
-        custodian: d.custodian,
-        price: d.price?.buy,
-        minInvestment: d.min_trade?.buy,
-        raiseAmount: d.raise_amount,
-        totalRaised: d.total_raised,
-        raisePct: d.raise_amount > 0 ? ((d.total_raised / d.raise_amount) * 100).toFixed(1) : 0,
-        isOpen: !d.completed_raise && !d.closed && !d.exited,
-        maturity: d.maturity,
-        payoutFrequency: d.payout_frequency,
-        dividend: d.dividend,
-        managementFee: d.management_fee,
-      })),
-    }, null, 0);
+    const openDeals = deals.filter((d: any) => !d.completed_raise && !d.closed && !d.exited);
+    const topDeals = openDeals.slice(0, 12);
 
-    const completion = await getOpenAI().chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are a senior Nigerian fixed income analyst and deal screener at an institutional investment firm. You evaluate deals from the GetEquity platform for institutional investors.
+    const dealLines = topDeals.map((d: any) => {
+      const raisePct = d.raise_amount > 0 ? ((d.total_raised / d.raise_amount) * 100).toFixed(0) : "0";
+      return `${d.name}(${d.symbol}): ${d.interest}% rate, ${d.tenor}d tenor, ${d.risk} risk, ${d.rating||'-'} rating, ${d.custodian||'-'} custodian, ₦${d.min_trade?.buy||0} min, ${raisePct}% raised, ${d.investment_category||d.investment_type}`;
+    }).join("\n");
 
-For each noteworthy deal, provide:
-- **Attractiveness Rating**: Strong Buy / Buy / Hold / Avoid
-- **Spread vs Benchmark**: How the deal's rate compares to the NTB benchmark
-- **Risk Assessment**: Based on risk rating, custodian presence, raise completion, and deal structure
-- **Portfolio Fit**: How this could fit into a 3-pillar portfolio (Stability/Inflation Hedge/Strategic)
+    const prompt = `You are a Nigerian fixed income deal screener. NTB benchmark: ${benchmarkRate}%. Screen these ${topDeals.length} open GetEquity deals (of ${deals.length} total). Rate each: Strong Buy/Buy/Hold/Avoid. Give Top 3 picks, Deals to Watch, and Avoid list. Use bullet points, under 400 words.
 
-Your analysis should:
-1. **Top Picks** — Rank the best 3-5 open deals with clear reasoning
-2. **Deals to Watch** — Any deals that are interesting but have caveats
-3. **Avoid List** — Any deals with red flags (high risk, no custodian, low raise completion, etc.)
-4. **Market Context** — How these deals compare to current NTB/OMO rates
+Deals:
+${dealLines}`;
 
-${portfolioContext ? "Consider the user's portfolio context when making recommendations — identify deals that fill gaps in their portfolio allocation." : ""}
-
-Keep it concise, data-driven, under 500 words. Use bullet points. Reference specific deal names and rates. Currency is NGN.`
-        },
-        {
-          role: "user",
-          content: `Screen and rank these GetEquity deals for an institutional investor:\n\n${dealsContext}`
-        }
-      ],
-    });
-
-    const analysis = completion.choices[0]?.message?.content || "Unable to generate deal screening.";
+    const analysis = await runAiPrompt(prompt, "fast");
     res.json({ analysis, dealsAnalyzed: deals.length, benchmarkRate, generatedAt: new Date().toISOString() });
   } catch (err: any) {
     console.error("AI deal screening error:", err);
