@@ -1378,6 +1378,9 @@ export default function PortfolioPage() {
                         if (g.pillar !== "STRATEGIC" && g.totalEntryValue > 0 && g.livePrice) {
                           g.gainLossPct = parseFloat(((g.totalValue - g.totalEntryValue) / g.totalEntryValue * 100).toFixed(2));
                         }
+                        if (g.pillar === "STRATEGIC" && g.totalEntryValue > 0 && g.totalEntryValue !== g.totalValue) {
+                          g.gainLossPct = parseFloat(((g.totalValue - g.totalEntryValue) / g.totalEntryValue * 100).toFixed(2));
+                        }
                       });
                       const pillarOrder = ["STABILITY", "INFLATION", "STRATEGIC"];
                       const entries = Array.from(grouped.entries());
@@ -1423,7 +1426,9 @@ export default function PortfolioPage() {
                                   </Badge>
                                 </td>
                                 <td className="py-2.5 px-3 text-right font-mono tabular-nums text-muted-foreground">{g.totalShares ? g.totalShares.toLocaleString() : "-"}</td>
-                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-muted-foreground">{g.totalShares ? formatNgn(costPrice) : "-"}</td>
+                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-muted-foreground">
+                                  {g.totalShares > 0 ? formatNgn(costPrice) : g.pillar === "STRATEGIC" && g.totalEntryValue > 0 && g.totalEntryValue !== g.totalValue ? formatNgn(g.totalEntryValue) : "-"}
+                                </td>
                                 <td className="py-2.5 px-3 text-right font-mono tabular-nums text-foreground">
                                   {g.livePrice ? (
                                     <div>
@@ -1447,27 +1452,31 @@ export default function PortfolioPage() {
                                 </td>
                                 <td className="py-2.5 px-3 text-right font-mono tabular-nums" data-testid={`holding-yield-${g.ids[0]}`}>
                                   {g.pillar === "STRATEGIC" ? (
-                                    g.annualRentNgn && g.totalValue > 0 ? (
-                                      <div>
-                                        <span className="text-teal-400">{((g.annualRentNgn / g.totalValue) * 100).toFixed(2)}%</span>
-                                        {g.strategicIrr != null && (
-                                          <div className="text-[9px] text-amber-400" data-testid={`holding-irr-${g.ids[0]}`}>
-                                            IRR {g.strategicIrr > 0 ? "+" : ""}{g.strategicIrr}%
-                                          </div>
-                                        )}
-                                        {g.cumulativeRentNgn != null && g.cumulativeRentNgn > 0 && (
-                                          <div className="text-[9px] text-muted-foreground" data-testid={`holding-cumrent-${g.ids[0]}`}>
-                                            ₦{g.cumulativeRentNgn.toLocaleString()} rent
-                                          </div>
-                                        )}
-                                      </div>
-                                    ) : g.strategicIrr != null ? (
-                                      <div>
-                                        <span className="text-amber-400">IRR {g.strategicIrr > 0 ? "+" : ""}{g.strategicIrr}%</span>
-                                      </div>
-                                    ) : (
-                                      <span className="text-muted-foreground">-</span>
-                                    )
+                                    <div>
+                                      {g.annualRentNgn && g.totalValue > 0 && (
+                                        <span className="text-teal-400">{((g.annualRentNgn / g.totalValue) * 100).toFixed(2)}% yield</span>
+                                      )}
+                                      {g.gainLossPct != null && (
+                                        <div className="text-[9px]" data-testid={`holding-strategic-gainloss-${g.ids[0]}`}>
+                                          <span className={g.gainLossPct >= 0 ? "text-emerald-400" : "text-red-400"}>
+                                            {g.gainLossPct >= 0 ? "+" : ""}{g.gainLossPct.toFixed(2)}% {g.gainLossPct >= 0 ? "gain" : "loss"}
+                                          </span>
+                                        </div>
+                                      )}
+                                      {g.strategicIrr != null && (
+                                        <div className="text-[9px] text-amber-400" data-testid={`holding-irr-${g.ids[0]}`}>
+                                          IRR {g.strategicIrr > 0 ? "+" : ""}{g.strategicIrr}%
+                                        </div>
+                                      )}
+                                      {g.cumulativeRentNgn != null && g.cumulativeRentNgn > 0 && (
+                                        <div className="text-[9px] text-muted-foreground" data-testid={`holding-cumrent-${g.ids[0]}`}>
+                                          ₦{g.cumulativeRentNgn.toLocaleString()} rent
+                                        </div>
+                                      )}
+                                      {!g.annualRentNgn && g.gainLossPct == null && g.strategicIrr == null && (
+                                        <span className="text-muted-foreground">-</span>
+                                      )}
+                                    </div>
                                   ) : g.gainLossPct != null ? (
                                     <div data-testid={`holding-gainloss-${g.ids[0]}`}>
                                       <span className={g.gainLossPct >= 0 ? "text-emerald-400" : "text-red-400"}>
