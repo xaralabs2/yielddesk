@@ -42,3 +42,9 @@ externalPort = 3002
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+YIELDDESK_AI_BASE_URL = "http://209.38.100.198:8000"
+YIELDDESK_AI_TENANT_ID = "yielddesk"
