@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw, Plus, Trash2, TrendingUp, Building2, PenLine, ArrowUpRight, Landmark } from "lucide-react";
 
@@ -100,11 +99,6 @@ interface GeCpData {
   tokens: GeToken[];
 }
 
-interface GeDealsData {
-  configured: boolean;
-  deals: GeToken[];
-}
-
 function useMmSummary() {
   return useQuery<MmSummary>({
     queryKey: ["/api/mm/summary"],
@@ -133,18 +127,6 @@ function useGeCpTokens() {
     queryFn: async () => {
       const res = await fetch("/api/mm/getequity-cp", { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Failed to fetch GetEquity CP");
-      return res.json();
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-function useGeDeals() {
-  return useQuery<GeDealsData>({
-    queryKey: ["/api/mm/getequity-deals"],
-    queryFn: async () => {
-      const res = await fetch("/api/mm/getequity-deals", { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error("Failed to fetch GetEquity deals");
       return res.json();
     },
     staleTime: 5 * 60 * 1000,
@@ -182,7 +164,6 @@ export default function MmRatesPage() {
   const { data: summary, isLoading: summaryLoading } = useMmSummary();
   const { data: allRates, isLoading: ratesLoading } = useMmRates();
   const { data: geCp } = useGeCpTokens();
-  const { data: geDeals } = useGeDeals();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [syncingFmdq, setSyncingFmdq] = useState(false);
@@ -458,7 +439,6 @@ export default function MmRatesPage() {
           <TabsTrigger value="proxy">NTB/OMO Proxies</TabsTrigger>
           <TabsTrigger value="fmdq">FMDQ Rates</TabsTrigger>
           <TabsTrigger value="getequity">GetEquity CP</TabsTrigger>
-          <TabsTrigger value="deals">Deal Room</TabsTrigger>
           <TabsTrigger value="manual">Manual Entries</TabsTrigger>
         </TabsList>
 
@@ -618,133 +598,6 @@ export default function MmRatesPage() {
                       )}
                     </tbody>
                   </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="deals">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Landmark className="w-4 h-4" /> GetEquity Deal Room
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {geDeals && !geDeals.configured ? (
-                <div className="py-8 text-center text-muted-foreground">
-                  <p className="text-sm font-medium">GetEquity API not configured</p>
-                  <p className="text-xs mt-1">Add your GETEQUITY_API_KEY to environment secrets to access the deal room.</p>
-                </div>
-              ) : (geDeals?.deals ?? []).length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground text-sm">No deals available.</div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {(geDeals?.deals ?? []).map((d) => {
-                    const raisePct = d.raise_amount > 0 ? Math.min(100, (d.total_raised / d.raise_amount) * 100) : 0;
-                    const isOpen = !d.completed_raise && !d.closed && !d.exited;
-                    const riskColor = d.risk === "Low" ? "text-emerald-500" : d.risk === "Medium" ? "text-yellow-500" : d.risk === "High" ? "text-red-500" : "text-muted-foreground";
-                    return (
-                      <Card key={d._id} className="flex flex-col border">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start gap-3">
-                            {d.image && <img src={d.image} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-semibold text-sm leading-tight line-clamp-2">{d.name}</h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] font-mono text-muted-foreground">{d.symbol}</span>
-                                {isOpen ? (
-                                  <Badge className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Open</Badge>
-                                ) : d.exited ? (
-                                  <Badge variant="secondary" className="text-[10px]">Exited</Badge>
-                                ) : (
-                                  <Badge variant="secondary" className="text-[10px]">Closed</Badge>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="flex-1 pt-0 space-y-3">
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                            <div>
-                              <span className="text-muted-foreground">Type</span>
-                              <p className="font-medium">{d.investment_category || d.investment_type}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Risk</span>
-                              <p className={`font-medium ${riskColor}`}>{d.risk || "---"}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Interest</span>
-                              <p className="font-mono font-semibold text-emerald-500">{d.interest > 0 ? `${d.interest}%` : "---"}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Tenor</span>
-                              <p className="font-mono">{d.tenor > 0 ? `${d.tenor} days` : "---"}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Price</span>
-                              <p className="font-mono">₦{d.price.buy > 0 ? d.price.buy.toLocaleString() : "---"}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Maturity</span>
-                              <p className="font-mono">{d.maturity ? formatDate(d.maturity) : "---"}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Min. Investment</span>
-                              <p className="font-mono">₦{d.min_trade?.buy > 0 ? d.min_trade.buy.toLocaleString() : "---"}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Payout</span>
-                              <p>{d.payout_frequency || "---"}</p>
-                            </div>
-                            {d.rating && d.rating !== "-" && (
-                              <div>
-                                <span className="text-muted-foreground">Rating</span>
-                                <p className="font-medium">{d.rating}</p>
-                              </div>
-                            )}
-                            {d.custodian && d.custodian !== "-" && d.custodian !== "undefined" && (
-                              <div>
-                                <span className="text-muted-foreground">Custodian</span>
-                                <p className="truncate">{d.custodian}</p>
-                              </div>
-                            )}
-                            {d.dividend > 0 && (
-                              <div>
-                                <span className="text-muted-foreground">Dividend</span>
-                                <p className="font-mono">{d.dividend}%</p>
-                              </div>
-                            )}
-                            {d.management_fee > 0 && (
-                              <div>
-                                <span className="text-muted-foreground">Mgmt Fee</span>
-                                <p className="font-mono">{d.management_fee}%</p>
-                              </div>
-                            )}
-                          </div>
-                          <Separator />
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[10px] text-muted-foreground">
-                              <span>Raise Progress</span>
-                              <span className="font-mono">{raisePct.toFixed(0)}%</span>
-                            </div>
-                            <div className="w-full bg-muted rounded-full h-1.5">
-                              <div
-                                className="bg-emerald-500 h-1.5 rounded-full transition-all"
-                                style={{ width: `${Math.min(raisePct, 100)}%` }}
-                              />
-                            </div>
-                            <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-                              <span>₦{d.total_raised.toLocaleString()}</span>
-                              <span>₦{d.raise_amount.toLocaleString()}</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
                 </div>
               )}
             </CardContent>
