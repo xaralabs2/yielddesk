@@ -240,7 +240,9 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
   const { toast } = useToast();
 
   const isEquityPillar = pillar === "STABILITY" || pillar === "INFLATION";
+  const isStrategic = pillar === "STRATEGIC";
   const hasSharesEntry = isEquityPillar && shares && costPrice && !isNaN(parseFloat(shares)) && !isNaN(parseFloat(costPrice));
+  const hasCostBasis = isStrategic && costPrice && !isNaN(parseFloat(costPrice)) && parseFloat(costPrice) > 0;
   const computedValue = hasSharesEntry
     ? (parseFloat(shares) * parseFloat(costPrice)).toFixed(2)
     : "";
@@ -262,6 +264,9 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
       if (hasSharesEntry) {
         payload.shares = parseFloat(shares);
         payload.entryValueNgn = finalValue;
+      }
+      if (hasCostBasis) {
+        payload.entryValueNgn = parseFloat(costPrice);
       }
       return apiRequest("POST", "/api/portfolio/holdings", payload);
     },
@@ -334,8 +339,21 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
           {isEquityPillar && <p className="text-[10px] text-muted-foreground">For cash/MMF instruments without share pricing, enter value directly.</p>}
         </div>
       )}
-      {pillar === "STRATEGIC" && (
+      {isStrategic && (
         <>
+          <div className="space-y-2">
+            <Label htmlFor="asset-cost-price-strategic">Cost Price / Acquisition Cost (NGN, optional)</Label>
+            <Input id="asset-cost-price-strategic" type="number" step="0.01" placeholder="e.g. 25000000" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} data-testid="input-strategic-cost-price" />
+            <p className="text-[10px] text-muted-foreground">Original purchase price — used for capital gain/loss tracking</p>
+          </div>
+          {hasCostBasis && valueNgn && parseFloat(valueNgn) > 0 && (
+            <div className="rounded-md bg-muted/50 p-3 border border-border/50">
+              <span className="text-xs text-muted-foreground">Unrealised Gain/Loss</span>
+              <p className={`font-mono tabular-nums font-semibold ${parseFloat(valueNgn) - parseFloat(costPrice) >= 0 ? "text-green-500" : "text-red-500"}`} data-testid="text-strategic-gain-loss">
+                {formatNgn(parseFloat(valueNgn) - parseFloat(costPrice))} ({((parseFloat(valueNgn) - parseFloat(costPrice)) / parseFloat(costPrice) * 100).toFixed(1)}%)
+              </p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="asset-corridor">Corridor (optional)</Label>
             <Select value={corridor} onValueChange={setCorridor}>
@@ -370,13 +388,14 @@ function AddHoldingDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-function EditHoldingDialog({ holding, onClose }: { holding: { id: number; asset: string; ticker: string | null; pillar: string; valueNgn: number; shares: number; annualRentNgn?: number | null; corridor?: string | null; entryDate?: string | null; cumulativeRentNgn?: number | null }; onClose: () => void }) {
+function EditHoldingDialog({ holding, onClose }: { holding: { id: number; asset: string; ticker: string | null; pillar: string; valueNgn: number; shares: number; entryValueNgn?: number | null; annualRentNgn?: number | null; corridor?: string | null; entryDate?: string | null; cumulativeRentNgn?: number | null }; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [asset, setAsset] = useState(holding.asset);
   const [ticker, setTicker] = useState(holding.ticker || "");
   const [pillar, setPillar] = useState(holding.pillar);
   const [valueNgn, setValueNgn] = useState(holding.valueNgn.toString());
   const [shares, setShares] = useState(holding.shares ? holding.shares.toString() : "");
+  const [costPrice, setCostPrice] = useState(holding.entryValueNgn ? holding.entryValueNgn.toString() : "");
   const [annualRentNgn, setAnnualRentNgn] = useState(holding.annualRentNgn ? holding.annualRentNgn.toString() : "");
   const [corridor, setCorridor] = useState(holding.corridor || "");
   const [entryDate, setEntryDate] = useState(holding.entryDate ? holding.entryDate.split("T")[0] : "");
@@ -384,7 +403,7 @@ function EditHoldingDialog({ holding, onClose }: { holding: { id: number; asset:
 
   const editMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("PATCH", `/api/portfolio/holdings/${holding.id}`, {
+      const payload: any = {
         asset,
         ticker: ticker || null,
         pillar,
@@ -393,7 +412,11 @@ function EditHoldingDialog({ holding, onClose }: { holding: { id: number; asset:
         annualRentNgn: pillar === "STRATEGIC" && annualRentNgn ? parseFloat(annualRentNgn) : null,
         corridor: pillar === "STRATEGIC" && corridor ? corridor : null,
         entryDate: pillar === "STRATEGIC" && entryDate ? entryDate : null,
-      });
+      };
+      if (pillar === "STRATEGIC" && costPrice && !isNaN(parseFloat(costPrice)) && parseFloat(costPrice) > 0) {
+        payload.entryValueNgn = parseFloat(costPrice);
+      }
+      return apiRequest("PATCH", `/api/portfolio/holdings/${holding.id}`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/portfolio"] });
@@ -440,6 +463,19 @@ function EditHoldingDialog({ holding, onClose }: { holding: { id: number; asset:
       </div>
       {pillar === "STRATEGIC" && (
         <>
+          <div className="space-y-2">
+            <Label htmlFor="edit-asset-cost-price-strategic">Cost Price / Acquisition Cost (NGN, optional)</Label>
+            <Input id="edit-asset-cost-price-strategic" type="number" step="0.01" placeholder="e.g. 25000000" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} data-testid="input-edit-strategic-cost-price" />
+            <p className="text-[10px] text-muted-foreground">Original purchase price — used for capital gain/loss tracking</p>
+          </div>
+          {costPrice && parseFloat(costPrice) > 0 && valueNgn && parseFloat(valueNgn) > 0 && (
+            <div className="rounded-md bg-muted/50 p-3 border border-border/50">
+              <span className="text-xs text-muted-foreground">Unrealised Gain/Loss</span>
+              <p className={`font-mono tabular-nums font-semibold ${parseFloat(valueNgn) - parseFloat(costPrice) >= 0 ? "text-green-500" : "text-red-500"}`} data-testid="text-edit-strategic-gain-loss">
+                {formatNgn(parseFloat(valueNgn) - parseFloat(costPrice))} ({((parseFloat(valueNgn) - parseFloat(costPrice)) / parseFloat(costPrice) * 100).toFixed(1)}%)
+              </p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="edit-asset-corridor">Corridor (optional)</Label>
             <Select value={corridor} onValueChange={setCorridor}>
@@ -1464,6 +1500,7 @@ export default function PortfolioPage() {
                                           pillar: original?.pillar ?? g.pillar,
                                           valueNgn: original?.valueNgn ?? g.totalValue,
                                           shares: original?.shares ?? 0,
+                                          entryValueNgn: original?.entryValueNgn ?? null,
                                           annualRentNgn: original?.annualRentNgn ?? g.annualRentNgn,
                                           corridor: original?.corridor ?? g.corridor,
                                           entryDate: original?.entryDate ?? g.entryDate,

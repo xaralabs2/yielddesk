@@ -187,7 +187,7 @@ export function registerInvestmentPortfolioRoutes(
     try {
       const userId = getUserId(req);
       const id = parseInt(req.params.id);
-      const { asset, ticker, pillar, valueNgn, shares, annualRentNgn, corridor, entryDate } = req.body;
+      const { asset, ticker, pillar, valueNgn, shares, annualRentNgn, corridor, entryDate, entryValueNgn } = req.body;
       const validCorridors = ["Lekki Phase 1", "Ibeju Lekki", "Victoria Island", "Ikoyi", "Eko Atlantic", "Other"];
       const updates: Record<string, unknown> = { lastUpdated: new Date() };
       if (asset != null) updates.asset = asset;
@@ -200,6 +200,7 @@ export function registerInvestmentPortfolioRoutes(
       }
       if (valueNgn != null) updates.valueNgn = Number(valueNgn);
       if (shares !== undefined) updates.shares = shares != null ? Number(shares) : null;
+      if (entryValueNgn !== undefined) updates.entryValueNgn = entryValueNgn != null ? Number(entryValueNgn) : null;
       if (annualRentNgn !== undefined) updates.annualRentNgn = annualRentNgn != null && Number(annualRentNgn) >= 0 ? Number(annualRentNgn) : null;
       if (corridor !== undefined) updates.corridor = corridor && validCorridors.includes(corridor) ? corridor : null;
       if (entryDate !== undefined) updates.entryDate = entryDate ? new Date(entryDate) : null;
