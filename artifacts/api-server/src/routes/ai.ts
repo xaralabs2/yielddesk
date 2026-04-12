@@ -33,7 +33,7 @@ async function runAiPrompt(prompt: string, taskType: string = "fast"): Promise<s
 }
 
 function isAiConfigured(): boolean {
-  return !!(process.env.YIELDDESK_AI_API_KEY && process.env.YIELDDESK_AI_BASE_URL);
+  return !!process.env.YIELDDESK_AI_API_KEY;
 }
 
 const router: IRouter = Router();

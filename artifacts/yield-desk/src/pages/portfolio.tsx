@@ -413,8 +413,9 @@ function EditHoldingDialog({ holding, onClose }: { holding: { id: number; asset:
         corridor: pillar === "STRATEGIC" && corridor ? corridor : null,
         entryDate: pillar === "STRATEGIC" && entryDate ? entryDate : null,
       };
-      if (pillar === "STRATEGIC" && costPrice && !isNaN(parseFloat(costPrice)) && parseFloat(costPrice) > 0) {
-        payload.entryValueNgn = parseFloat(costPrice);
+      if (pillar === "STRATEGIC") {
+        payload.entryValueNgn = costPrice && !isNaN(parseFloat(costPrice)) && parseFloat(costPrice) > 0
+          ? parseFloat(costPrice) : null;
       }
       return apiRequest("PATCH", `/api/portfolio/holdings/${holding.id}`, payload);
     },

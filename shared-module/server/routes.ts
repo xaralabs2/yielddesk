@@ -198,9 +198,19 @@ export function registerInvestmentPortfolioRoutes(
         }
         updates.pillar = pillar;
       }
-      if (valueNgn != null) updates.valueNgn = Number(valueNgn);
-      if (shares !== undefined) updates.shares = shares != null ? Number(shares) : null;
-      if (entryValueNgn !== undefined) updates.entryValueNgn = entryValueNgn != null ? Number(entryValueNgn) : null;
+      if (valueNgn != null) {
+        const v = Number(valueNgn);
+        if (isNaN(v)) return res.status(400).json({ message: "valueNgn must be a valid number" });
+        updates.valueNgn = v;
+      }
+      if (shares !== undefined) {
+        if (shares != null && isNaN(Number(shares))) return res.status(400).json({ message: "shares must be a valid number" });
+        updates.shares = shares != null ? Number(shares) : null;
+      }
+      if (entryValueNgn !== undefined) {
+        if (entryValueNgn != null && isNaN(Number(entryValueNgn))) return res.status(400).json({ message: "entryValueNgn must be a valid number" });
+        updates.entryValueNgn = entryValueNgn != null ? Number(entryValueNgn) : null;
+      }
       if (annualRentNgn !== undefined) updates.annualRentNgn = annualRentNgn != null && Number(annualRentNgn) >= 0 ? Number(annualRentNgn) : null;
       if (corridor !== undefined) updates.corridor = corridor && validCorridors.includes(corridor) ? corridor : null;
       if (entryDate !== undefined) updates.entryDate = entryDate ? new Date(entryDate) : null;
