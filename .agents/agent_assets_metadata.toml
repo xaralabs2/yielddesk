@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "xElMMzRdmFpNTU2EGU7rP"
+uri = "file://docs/AUDIT_FINDINGS_REPORT.md"
+type = "text"
+title = "YieldDesk Project Audit Findings Report"
