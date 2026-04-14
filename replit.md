@@ -110,6 +110,23 @@ pnpm workspace monorepo using TypeScript. Institutional capital allocation platf
 - `pnpm --filter @workspace/api-server run dev` — run API server
 - `npx tsx scripts/src/seed.ts` — seed demo data
 
+## Security & Performance
+- CORS restricted to known origins in `app.ts`
+- Rate limiting on auth, AI, and global endpoints via `express-rate-limit`
+- AI base URL driven by env var `YIELDDESK_AI_BASE_URL` (no hardcoded fallback)
+- Database indexes on userId, date, status columns for performance
+
+## Component Structure (Extracted Sub-Components)
+- `artifacts/yield-desk/src/pages/portfolio/` — 11 sub-components (types, constants, helpers, MetricCard, PillarGauge, AddHoldingDialog, EditHoldingDialog, ConfigDialog, GuideSection, PdfUploadDialog, EtfModelComparison, HoldingsTable)
+- `artifacts/yield-desk/src/pages/market-data/` — 8 sub-components (types, constants, RegimeBanner, RiskPanel, EtfStrategyTable, FactorRotation, InvestmentCard, CbnDataSection)
+- `artifacts/yield-desk/src/pages/mm-rates/` — 3 sub-components (types, RatesTabs)
+- All main page files kept under 500 lines
+
+## Automated Tests (54 total)
+- Decision engine: 18 tests in `artifacts/api-server/src/lib/decision-engine.test.ts`
+- ETF engine: 20 tests in `shared-module/server/etf-engine.test.ts`
+- Portfolio engine: 16 tests in `shared-module/server/portfolio-engine.test.ts`
+
 ## Important Notes
 - `lib/api-zod/src/index.ts` must only export from `./generated/api` (not `./generated/types`) to avoid TS2308 errors
 - bcrypt in `onlyBuiltDependencies` in `pnpm-workspace.yaml`

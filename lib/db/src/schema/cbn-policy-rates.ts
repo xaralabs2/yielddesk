@@ -1,4 +1,4 @@
-import { pgTable, serial, real, timestamp, varchar, integer } from "drizzle-orm/pg-core";
+import { pgTable, serial, real, timestamp, varchar, integer, index } from "drizzle-orm/pg-core";
 
 export const cbnPolicyRatesTable = pgTable("cbn_policy_rates", {
   id: serial("id").primaryKey(),
@@ -16,7 +16,9 @@ export const cbnPolicyRatesTable = pgTable("cbn_policy_rates", {
   primeLending: real("prime_lending"),
   maxLending: real("max_lending"),
   fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("cbn_policy_rates_year_month_idx").on(table.year, table.month),
+]);
 
 export const cbnExchangeRatesTable = pgTable("cbn_exchange_rates", {
   id: serial("id").primaryKey(),
@@ -26,7 +28,10 @@ export const cbnExchangeRatesTable = pgTable("cbn_exchange_rates", {
   centralRate: real("central_rate"),
   sellingRate: real("selling_rate"),
   fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("cbn_exchange_rates_currency_idx").on(table.currency),
+  index("cbn_exchange_rates_date_idx").on(table.rateDate),
+]);
 
 export type CbnPolicyRate = typeof cbnPolicyRatesTable.$inferSelect;
 export type CbnExchangeRate = typeof cbnExchangeRatesTable.$inferSelect;

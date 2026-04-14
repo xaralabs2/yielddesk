@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, real, integer, timestamp, text } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, real, integer, timestamp, text, index } from "drizzle-orm/pg-core";
 
 export const portfolioHoldingsTable = pgTable("portfolio_holdings", {
   id: serial("id").primaryKey(),
@@ -15,7 +15,11 @@ export const portfolioHoldingsTable = pgTable("portfolio_holdings", {
   corridor: varchar("corridor", { length: 50 }),
   entryDate: timestamp("entry_date", { withTimezone: true }),
   lastUpdated: timestamp("last_updated", { withTimezone: true }),
-});
+}, (table) => [
+  index("portfolio_holdings_user_id_idx").on(table.userId),
+  index("portfolio_holdings_user_pillar_idx").on(table.userId, table.pillar),
+  index("portfolio_holdings_ticker_idx").on(table.ticker),
+]);
 
 export const portfolioConfigTable = pgTable("portfolio_config", {
   id: serial("id").primaryKey(),

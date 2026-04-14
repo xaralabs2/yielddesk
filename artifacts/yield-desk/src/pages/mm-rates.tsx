@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, Plus, Trash2, TrendingUp, Building2, PenLine, ArrowUpRight, Landmark, Sparkles, X } from "lucide-react";
+import { RefreshCw, Plus, TrendingUp, Building2, ArrowUpRight, Sparkles, X } from "lucide-react";
+import type { MmSummary, MmRatesData, GeCpData } from "./mm-rates/types";
+import { formatDate, getAuthHeaders } from "./mm-rates/types";
+import { RatesTabs } from "./mm-rates/RatesTabs";
 
 function renderMarkdown(md: string): string {
   return md
@@ -24,132 +25,6 @@ function renderMarkdown(md: string): string {
     .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal">$2</li>')
     .replace(/\n{2,}/g, '<br/><br/>')
     .replace(/\n/g, '<br/>');
-}
-
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem("token");
-  const headers: Record<string, string> = {};
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  return headers;
-}
-
-interface MmRate {
-  id: number;
-  source: string;
-  rateType: string;
-  tenor: string;
-  rate: number;
-  date: string;
-  notes: string | null;
-  createdAt: string;
-}
-
-interface ProxyRate {
-  id: number;
-  source: string;
-  rateType: string;
-  tenor: string;
-  rate: number | null;
-  date: string;
-  notes: string;
-  createdAt: string;
-}
-
-interface MmSummary {
-  proxy: {
-    ntb91: { rate: number; date: string } | null;
-    ntb182: { rate: number; date: string } | null;
-    ntb364: { rate: number; date: string } | null;
-  };
-  fmdq: Record<string, { rate: number; date: string; tenor: string }>;
-  manual: MmRate[];
-  lastFmdqSync: string | null;
-}
-
-interface MmRatesData {
-  fmdq: MmRate[];
-  manual: MmRate[];
-  proxy: ProxyRate[];
-}
-
-interface GeToken {
-  _id: string;
-  name: string;
-  symbol: string;
-  image: string;
-  currency: string;
-  country: string;
-  type: string;
-  investment_type: string;
-  investment_category?: string;
-  payout_frequency?: string;
-  interest: number;
-  tenor: number;
-  maturity: string | null;
-  raise_amount: number;
-  total_raised: number;
-  supply: number;
-  price: { buy: number; sell: number; exchange: number };
-  min_trade: { buy: number; sell: number };
-  max_trade: { buy: number; sell: number };
-  valuation: number;
-  discount: number;
-  dividend: number;
-  risk: string;
-  rating: string;
-  custodian: string;
-  carry: number;
-  management_fee: number;
-  milestone: number;
-  completed_raise: boolean;
-  closed: boolean;
-  secondaries: boolean;
-  exited: boolean;
-  createdAt: string;
-}
-
-interface GeCpData {
-  configured: boolean;
-  tokens: GeToken[];
-}
-
-function useMmSummary() {
-  return useQuery<MmSummary>({
-    queryKey: ["/api/mm/summary"],
-    queryFn: async () => {
-      const res = await fetch("/api/mm/summary", { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error("Failed to fetch MM summary");
-      return res.json();
-    },
-  });
-}
-
-function useMmRates() {
-  return useQuery<MmRatesData>({
-    queryKey: ["/api/mm/rates"],
-    queryFn: async () => {
-      const res = await fetch("/api/mm/rates", { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error("Failed to fetch MM rates");
-      return res.json();
-    },
-  });
-}
-
-function useGeCpTokens() {
-  return useQuery<GeCpData>({
-    queryKey: ["/api/mm/getequity-cp"],
-    queryFn: async () => {
-      const res = await fetch("/api/mm/getequity-cp", { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error("Failed to fetch GetEquity CP");
-      return res.json();
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "---";
-  return new Date(dateStr).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function RateCard({ label, rate, sublabel, icon: Icon, highlight }: {
@@ -175,9 +50,31 @@ function RateCard({ label, rate, sublabel, icon: Icon, highlight }: {
 }
 
 export default function MmRatesPage() {
-  const { data: summary, isLoading: summaryLoading } = useMmSummary();
-  const { data: allRates, isLoading: ratesLoading } = useMmRates();
-  const { data: geCp } = useGeCpTokens();
+  const { data: summary, isLoading: summaryLoading } = useQuery<MmSummary>({
+    queryKey: ["/api/mm/summary"],
+    queryFn: async () => {
+      const res = await fetch("/api/mm/summary", { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error("Failed to fetch MM summary");
+      return res.json();
+    },
+  });
+  const { data: allRates, isLoading: ratesLoading } = useQuery<MmRatesData>({
+    queryKey: ["/api/mm/rates"],
+    queryFn: async () => {
+      const res = await fetch("/api/mm/rates", { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error("Failed to fetch MM rates");
+      return res.json();
+    },
+  });
+  const { data: geCp } = useQuery<GeCpData>({
+    queryKey: ["/api/mm/getequity-cp"],
+    queryFn: async () => {
+      const res = await fetch("/api/mm/getequity-cp", { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error("Failed to fetch GetEquity CP");
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [syncingFmdq, setSyncingFmdq] = useState(false);
@@ -510,229 +407,7 @@ export default function MmRatesPage() {
         </Card>
       )}
 
-      <Tabs defaultValue="proxy" data-testid="tabs-mm-rates">
-        <TabsList>
-          <TabsTrigger value="proxy">NTB/OMO Proxies</TabsTrigger>
-          <TabsTrigger value="fmdq">FMDQ Rates</TabsTrigger>
-          <TabsTrigger value="getequity">GetEquity CP</TabsTrigger>
-          <TabsTrigger value="manual">Manual Entries</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="proxy">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <ArrowUpRight className="w-4 h-4" /> NTB &amp; OMO Rates (MM Proxy)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
-                      <th className="px-4 py-3">Type</th>
-                      <th className="px-4 py-3">Tenor</th>
-                      <th className="px-4 py-3">Rate</th>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(allRates?.proxy ?? []).map((r) => (
-                      <tr key={`proxy-${r.id}`} className="border-b last:border-0 hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <Badge variant="outline" className="text-xs">{r.rateType}</Badge>
-                        </td>
-                        <td className="px-4 py-3 font-mono text-xs">{r.tenor}</td>
-                        <td className="px-4 py-3 font-mono font-medium">
-                          {r.rate != null ? `${r.rate.toFixed(2)}%` : "---"}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">{formatDate(r.date)}</td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">{r.notes}</td>
-                      </tr>
-                    ))}
-                    {(allRates?.proxy ?? []).length === 0 && (
-                      <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No proxy data available. Sync CBN data first.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="fmdq">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Building2 className="w-4 h-4" /> FMDQ Market Rates
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
-                      <th className="px-4 py-3">Rate Type</th>
-                      <th className="px-4 py-3">Tenor</th>
-                      <th className="px-4 py-3">Rate</th>
-                      <th className="px-4 py-3">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(allRates?.fmdq ?? []).map((r) => (
-                      <tr key={r.id} className="border-b last:border-0 hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <Badge variant="outline" className="text-xs">{r.rateType}</Badge>
-                        </td>
-                        <td className="px-4 py-3 font-mono text-xs">{r.tenor}</td>
-                        <td className="px-4 py-3 font-mono font-medium">{r.rate.toFixed(2)}%</td>
-                        <td className="px-4 py-3 text-muted-foreground">{formatDate(r.date)}</td>
-                      </tr>
-                    ))}
-                    {(allRates?.fmdq ?? []).length === 0 && (
-                      <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No FMDQ data. Click "Sync FMDQ" to fetch rates.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="getequity">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Landmark className="w-4 h-4" /> GetEquity — Commercial Paper & Fixed Income
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {geCp && !geCp.configured ? (
-                <div className="px-4 py-8 text-center text-muted-foreground">
-                  <p className="text-sm font-medium">GetEquity API not configured</p>
-                  <p className="text-xs mt-1">Add your GETEQUITY_API_KEY to environment secrets to fetch live CP instruments.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
-                        <th className="px-4 py-3">Instrument</th>
-                        <th className="px-4 py-3">Category</th>
-                        <th className="px-4 py-3">Interest</th>
-                        <th className="px-4 py-3">Tenor</th>
-                        <th className="px-4 py-3">Price (NGN)</th>
-                        <th className="px-4 py-3">Raise Target</th>
-                        <th className="px-4 py-3">Payout</th>
-                        <th className="px-4 py-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(geCp?.tokens ?? []).map((t) => (
-                        <tr key={t._id} className="border-b last:border-0 hover:bg-muted/50">
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              {t.image && <img src={t.image} alt="" className="w-6 h-6 rounded-full" />}
-                              <div>
-                                <div className="font-medium text-xs">{t.name}</div>
-                                <div className="text-[10px] text-muted-foreground font-mono">{t.symbol}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant="outline" className="text-xs">
-                              {t.investment_category || t.investment_type}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 font-mono font-medium text-emerald-500">
-                            {t.interest > 0 ? `${t.interest}%` : "---"}
-                          </td>
-                          <td className="px-4 py-3 font-mono text-xs">
-                            {t.tenor > 0 ? `${t.tenor} days` : "---"}
-                          </td>
-                          <td className="px-4 py-3 font-mono text-xs">
-                            {t.price.buy > 0 ? `₦${t.price.buy.toLocaleString()}` : "---"}
-                          </td>
-                          <td className="px-4 py-3 font-mono text-xs">
-                            {t.raise_amount > 0 ? `₦${t.raise_amount.toLocaleString()}` : "---"}
-                          </td>
-                          <td className="px-4 py-3 text-xs text-muted-foreground">
-                            {t.payout_frequency || "---"}
-                          </td>
-                          <td className="px-4 py-3">
-                            {t.completed_raise ? (
-                              <Badge variant="secondary" className="text-xs">Closed</Badge>
-                            ) : (
-                              <Badge className="text-xs bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Open</Badge>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                      {(geCp?.tokens ?? []).length === 0 && geCp?.configured && (
-                        <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No commercial paper or fixed income instruments found.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="manual">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <PenLine className="w-4 h-4" /> Manual Rate Entries
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-xs text-muted-foreground uppercase tracking-wider">
-                      <th className="px-4 py-3">Rate Type</th>
-                      <th className="px-4 py-3">Tenor</th>
-                      <th className="px-4 py-3">Rate</th>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Notes</th>
-                      <th className="px-4 py-3 w-12"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(allRates?.manual ?? []).map((r) => (
-                      <tr key={r.id} className="border-b last:border-0 hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <Badge variant="outline" className="text-xs">{r.rateType}</Badge>
-                        </td>
-                        <td className="px-4 py-3 font-mono text-xs">{r.tenor}</td>
-                        <td className="px-4 py-3 font-mono font-medium">{r.rate.toFixed(2)}%</td>
-                        <td className="px-4 py-3 text-muted-foreground">{formatDate(r.date)}</td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">{r.notes || "---"}</td>
-                        <td className="px-4 py-3">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteRate(r.id)}
-                            data-testid={`button-delete-mm-${r.id}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                    {(allRates?.manual ?? []).length === 0 && (
-                      <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No manual entries. Click "Add Rate" to enter dealer quotes.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <RatesTabs allRates={allRates} geCp={geCp} onDeleteRate={handleDeleteRate} />
     </div>
   );
 }

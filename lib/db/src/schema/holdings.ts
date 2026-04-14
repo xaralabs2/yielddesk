@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, real, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, real, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -14,7 +14,11 @@ export const holdingsTable = pgTable("holdings", {
   maturityDate: timestamp("maturity_date", { withTimezone: true }),
   status: text("status").notNull().default("ACTIVE"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("holdings_user_id_idx").on(table.userId),
+  index("holdings_user_status_idx").on(table.userId, table.status),
+  index("holdings_maturity_date_idx").on(table.maturityDate),
+]);
 
 export const insertHoldingSchema = createInsertSchema(holdingsTable).omit({ id: true, createdAt: true });
 export type InsertHolding = z.infer<typeof insertHoldingSchema>;

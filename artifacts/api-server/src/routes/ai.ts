@@ -4,8 +4,12 @@ import { db, mmRatesTable, cbnMarketDataTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/auth";
 import { fetchGeCpTokens, fetchAllDeals, isGetEquityConfigured } from "../lib/getequity-client";
 
-const AI_BASE_URL = process.env.YIELDDESK_AI_BASE_URL || "http://209.38.100.198:8000";
+const AI_BASE_URL = process.env.YIELDDESK_AI_BASE_URL;
 const AI_TENANT_ID = process.env.YIELDDESK_AI_TENANT_ID || "yielddesk";
+
+if (AI_BASE_URL && AI_BASE_URL.startsWith("http://") && !AI_BASE_URL.includes("localhost") && !AI_BASE_URL.includes("127.0.0.1")) {
+  console.warn("[AI] WARNING: AI_BASE_URL uses plain HTTP — credentials may be transmitted insecurely. Use HTTPS in production.");
+}
 
 function getAiHeaders(): Record<string, string> {
   const apiKey = process.env.YIELDDESK_AI_API_KEY || "";
@@ -33,7 +37,7 @@ async function runAiPrompt(prompt: string, taskType: string = "fast"): Promise<s
 }
 
 function isAiConfigured(): boolean {
-  return !!process.env.YIELDDESK_AI_API_KEY;
+  return !!process.env.YIELDDESK_AI_API_KEY && !!AI_BASE_URL;
 }
 
 const router: IRouter = Router();
@@ -77,7 +81,9 @@ router.post("/ai/market-brief", requireAuth, async (_req, res): Promise<void> =>
     if (isGetEquityConfigured()) {
       try {
         geCpData = await fetchGeCpTokens();
-      } catch {}
+      } catch (e) {
+        console.warn("[AI] Failed to fetch GetEquity CP tokens:", e instanceof Error ? e.message : e);
+      }
     }
 
     const ratesContext = JSON.stringify({
