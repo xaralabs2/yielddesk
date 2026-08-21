@@ -1,4 +1,10 @@
-import { db, signalsTable, cbnMarketDataTable, cbnPolicyRatesTable, cbnExchangeRatesTable } from "@workspace/db";
+import {
+  db,
+  signalsTable,
+  cbnMarketDataTable,
+  cbnPolicyRatesTable,
+  cbnExchangeRatesTable,
+} from "@workspace/db";
 import { desc, eq, and, gte } from "drizzle-orm";
 import { logger } from "./logger";
 
@@ -27,6 +33,33 @@ interface CbnApiRecord {
   netValue: string;
 }
 
+interface MoneyMarketRecord {
+  id: number;
+  tyear: number;
+  tmonth: number;
+  period: string;
+  interBankCallRate: string;
+  mrr: string;
+  mpr: string;
+  treasuryBill: string;
+  savingsDeposit: string;
+  oneMonthDeposit: string;
+  threeMonthsDeposit: string;
+  sixMonthsDeposit: string;
+  twelveMonthsDeposit: string;
+  primeLending: string;
+  maxLending: string;
+}
+
+interface ExchangeRateRecord {
+  id: number;
+  currency: string;
+  ratedate: string;
+  buyingrate: string;
+  centralrate: string;
+  sellingrate: string;
+}
+
 function parseCbnDate(dateStr: string): Date | null {
   if (!dateStr) return null;
   const parts = dateStr.trim().split("/");
@@ -42,7 +75,7 @@ function parseNum(str: string): number | null {
   return isNaN(n) ? null : n;
 }
 
-async function fetchEndpoint(url: string): Promise<CbnApiRecord[]> {
+async function fetchEndpoint<T>(url: string): Promise<T[]> {
   const response = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -56,22 +89,26 @@ async function fetchEndpoint(url: string): Promise<CbnApiRecord[]> {
     throw new Error(`CBN API ${url} failed: ${response.status}`);
   }
 
-  return response.json();
+  const payload: unknown = await response.json();
+  if (!Array.isArray(payload)) {
+    throw new Error(`CBN API ${url} returned a non-array payload`);
+  }
+  return payload as T[];
 }
 
 export async function fetchCbnData() {
   const [ntbRaw, bondRaw, omoRaw] = await Promise.all([
-    fetchEndpoint(ENDPOINTS.NTB).catch((e) => {
+    fetchEndpoint<CbnApiRecord>(ENDPOINTS.NTB).catch((e) => {
       logger.error({ err: e }, "Failed to fetch NTB data");
-      return [] as CbnApiRecord[];
+      return [];
     }),
-    fetchEndpoint(ENDPOINTS.BOND).catch((e) => {
+    fetchEndpoint<CbnApiRecord>(ENDPOINTS.BOND).catch((e) => {
       logger.error({ err: e }, "Failed to fetch Bond data");
-      return [] as CbnApiRecord[];
+      return [];
     }),
-    fetchEndpoint(ENDPOINTS.OMO).catch((e) => {
+    fetchEndpoint<CbnApiRecord>(ENDPOINTS.OMO).catch((e) => {
       logger.error({ err: e }, "Failed to fetch OMO data");
-      return [] as CbnApiRecord[];
+      return [];
     }),
   ]);
 
@@ -83,7 +120,8 @@ export async function fetchCbnData() {
   const ntb182 = recentNtb.find((r) => r.tenor?.includes("182"));
   const ntb91 = recentNtb.find((r) => r.tenor?.includes("91"));
 
-  const cpRate = parseNum(ntb364?.rate ?? "") ??
+  const cpRate =
+    parseNum(ntb364?.rate ?? "") ??
     parseNum(ntb182?.rate ?? "") ??
     parseNum(ntb91?.rate ?? "");
 
@@ -101,7 +139,7 @@ export async function fetchCbnData() {
       ntb182Rate: ntb182?.rate,
       latestBondRate: latestBond?.rate,
     },
-    "CBN data fetched from JSON API"
+    "CBN data fetched from JSON API",
   );
 
   return {
@@ -136,7 +174,6 @@ export async function syncCbnData(): Promise<{
     if (!marginalRate) continue;
 
     const auctionDate = parseCbnDate(rec.auctionDate);
-
     const existing = await db
       .select()
       .from(cbnMarketDataTable)
@@ -144,10 +181,8 @@ export async function syncCbnData(): Promise<{
         and(
           eq(cbnMarketDataTable.securityType, rec.securityType),
           eq(cbnMarketDataTable.tenor, rec.tenor),
-          auctionDate
-            ? eq(cbnMarketDataTable.auctionDate, auctionDate)
-            : undefined
-        )
+          auctionDate ? eq(cbnMarketDataTable.auctionDate, auctionDate) : undefined,
+        ),
       )
       .limit(1);
 
@@ -201,35 +236,22 @@ export async function syncCbnData(): Promise<{
 
   logger.info(
     { recordsInserted, signalCreated, cpRate: data.cpRate, bondYield: data.bondYield },
-    "CBN data sync complete"
+    "CBN data sync complete",
   );
-
   return { recordsInserted, signalCreated, cpRate: data.cpRate, bondYield: data.bondYield };
 }
 
 let syncInterval: ReturnType<typeof setInterval> | null = null;
 
 export function startCbnSync(intervalMs: number = 60 * 60 * 1000) {
-  syncCbnData().catch((err) => {
-    logger.error({ err }, "Initial CBN sync failed");
-  });
-  syncPolicyRates().catch((err) => {
-    logger.error({ err }, "Initial policy rates sync failed");
-  });
-  syncExchangeRates().catch((err) => {
-    logger.error({ err }, "Initial exchange rates sync failed");
-  });
+  syncCbnData().catch((err) => logger.error({ err }, "Initial CBN sync failed"));
+  syncPolicyRates().catch((err) => logger.error({ err }, "Initial policy rates sync failed"));
+  syncExchangeRates().catch((err) => logger.error({ err }, "Initial exchange rates sync failed"));
 
   syncInterval = setInterval(() => {
-    syncCbnData().catch((err) => {
-      logger.error({ err }, "Scheduled CBN sync failed");
-    });
-    syncPolicyRates().catch((err) => {
-      logger.error({ err }, "Scheduled policy rates sync failed");
-    });
-    syncExchangeRates().catch((err) => {
-      logger.error({ err }, "Scheduled exchange rates sync failed");
-    });
+    syncCbnData().catch((err) => logger.error({ err }, "Scheduled CBN sync failed"));
+    syncPolicyRates().catch((err) => logger.error({ err }, "Scheduled policy rates sync failed"));
+    syncExchangeRates().catch((err) => logger.error({ err }, "Scheduled exchange rates sync failed"));
   }, intervalMs);
 
   logger.info({ intervalMs }, "CBN data sync scheduler started");
@@ -242,37 +264,10 @@ export function stopCbnSync() {
   }
 }
 
-interface MoneyMarketRecord {
-  id: number;
-  tyear: number;
-  tmonth: number;
-  period: string;
-  interBankCallRate: string;
-  mrr: string;
-  mpr: string;
-  treasuryBill: string;
-  savingsDeposit: string;
-  oneMonthDeposit: string;
-  threeMonthsDeposit: string;
-  sixMonthsDeposit: string;
-  twelveMonthsDeposit: string;
-  primeLending: string;
-  maxLending: string;
-}
-
-interface ExchangeRateRecord {
-  id: number;
-  currency: string;
-  ratedate: string;
-  buyingrate: string;
-  centralrate: string;
-  sellingrate: string;
-}
-
 export async function syncPolicyRates(): Promise<{ recordsInserted: number }> {
-  const raw: MoneyMarketRecord[] = await fetchEndpoint(ENDPOINTS.MONEY_MARKET).catch((e) => {
+  const raw = await fetchEndpoint<MoneyMarketRecord>(ENDPOINTS.MONEY_MARKET).catch((e) => {
     logger.error({ err: e }, "Failed to fetch money market indicators");
-    return [];
+    return [] as MoneyMarketRecord[];
   });
 
   let recordsInserted = 0;
@@ -285,8 +280,8 @@ export async function syncPolicyRates(): Promise<{ recordsInserted: number }> {
       .where(
         and(
           eq(cbnPolicyRatesTable.year, rec.tyear),
-          eq(cbnPolicyRatesTable.month, rec.tmonth)
-        )
+          eq(cbnPolicyRatesTable.month, rec.tmonth),
+        ),
       )
       .limit(1);
 
@@ -314,12 +309,19 @@ export async function syncPolicyRates(): Promise<{ recordsInserted: number }> {
   return { recordsInserted };
 }
 
-const KEY_CURRENCIES = ["US DOLLAR", "POUNDS STERLING", "EURO", "SWISS FRANC", "CHINESE YUAN", "SOUTH AFRICAN RAND"];
+const KEY_CURRENCIES = [
+  "US DOLLAR",
+  "POUNDS STERLING",
+  "EURO",
+  "SWISS FRANC",
+  "CHINESE YUAN",
+  "SOUTH AFRICAN RAND",
+];
 
 export async function syncExchangeRates(): Promise<{ recordsInserted: number }> {
-  const raw: ExchangeRateRecord[] = await fetchEndpoint(ENDPOINTS.EXCHANGE_RATES).catch((e) => {
+  const raw = await fetchEndpoint<ExchangeRateRecord>(ENDPOINTS.EXCHANGE_RATES).catch((e) => {
     logger.error({ err: e }, "Failed to fetch exchange rates");
-    return [];
+    return [] as ExchangeRateRecord[];
   });
 
   let recordsInserted = 0;
@@ -335,8 +337,8 @@ export async function syncExchangeRates(): Promise<{ recordsInserted: number }> 
       .where(
         and(
           eq(cbnExchangeRatesTable.currency, rec.currency),
-          eq(cbnExchangeRatesTable.rateDate, rateDate)
-        )
+          eq(cbnExchangeRatesTable.rateDate, rateDate),
+        ),
       )
       .limit(1);
 
