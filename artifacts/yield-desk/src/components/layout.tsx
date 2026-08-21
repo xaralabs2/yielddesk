@@ -1,7 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { 
-  BarChart3, 
   Briefcase, 
   WalletCards, 
   LineChart, 
@@ -14,6 +13,7 @@ import {
   Moon,
   Monitor,
   Coins,
+  BrainCircuit,
 } from "lucide-react";
 import { useGetAlertCount, getGetAlertCountQueryKey } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
@@ -63,6 +63,7 @@ export function Sidebar() {
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/investment-desk", label: "Investment Desk", icon: BrainCircuit },
     { href: "/portfolio", label: "Portfolio", icon: Briefcase },
     { href: "/holdings", label: "Holdings", icon: WalletCards },
     { href: "/deals", label: "Deals", icon: LineChart },
