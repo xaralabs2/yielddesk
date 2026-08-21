@@ -5,7 +5,11 @@
     "rootDir": "../..",
     "types": ["node"]
   },
-  "include": ["src", "../../shared-module"],
+  "include": [
+    "src",
+    "../../shared-module/server",
+    "../../shared-module/types"
+  ],
   "references": [
     {
       "path": "../../lib/db"
