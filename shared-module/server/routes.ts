@@ -9,6 +9,9 @@ import { parseBrokerPdf } from "./pdf-parser";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
+const parseRouteId = (value: string | string[]): number =>
+  parseInt(Array.isArray(value) ? value[0] ?? "" : value);
+
 type AuthMiddleware = (req: Request, res: Response, next: NextFunction) => void;
 type GetUserId = (req: Request) => string;
 
@@ -186,7 +189,7 @@ export function registerInvestmentPortfolioRoutes(
   app.patch("/api/portfolio/holdings/:id", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId(req);
-      const id = parseInt(req.params.id);
+      const id = parseRouteId(req.params.id);
       const { asset, ticker, pillar, valueNgn, shares, annualRentNgn, corridor, entryDate, entryValueNgn } = req.body;
       const validCorridors = ["Lekki Phase 1", "Ibeju Lekki", "Victoria Island", "Ikoyi", "Eko Atlantic", "Other"];
       const updates: Record<string, unknown> = { lastUpdated: new Date() };
@@ -230,7 +233,7 @@ export function registerInvestmentPortfolioRoutes(
   app.delete("/api/portfolio/holdings/:id", isAuthenticated, async (req, res) => {
     try {
       const userId = getUserId(req);
-      const id = parseInt(req.params.id);
+      const id = parseRouteId(req.params.id);
       await storage.deletePortfolioHolding(id, userId);
       return res.json({ success: true });
     } catch (error) {
