@@ -7,3 +7,5 @@ export * from "./cbn-market-data";
 export * from "./mm-rates";
 export * from "./cbn-policy-rates";
 export * from "./portfolio-holdings";
+export * from "./diaspora-profiles";
+export * from "./simulation";

@@ -11,6 +11,7 @@ import cbnRouter from "./cbn";
 import mmRatesRouter from "./mm-rates";
 import aiRouter from "./ai";
 import investmentDeskRouter from "./investment-desk";
+import diasporaSimulationRouter from "./diaspora-simulation";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(cbnRouter);
 router.use(mmRatesRouter);
 router.use(aiRouter);
 router.use(investmentDeskRouter);
+router.use(diasporaSimulationRouter);
 
 export default router;
