@@ -16,6 +16,7 @@ import AlertsPage from "@/pages/alerts";
 import SignalsPage from "@/pages/signals";
 import MarketDataPage from "@/pages/market-data";
 import MmRatesPage from "@/pages/mm-rates";
+import InvestmentDeskPage from "@/pages/investment-desk";
 import { ThemeProvider } from "@/lib/theme";
 import { defaultQueryFn } from "@/lib/api-helpers";
 
@@ -66,6 +67,7 @@ function AppRouter() {
         <Route path="/login" component={() => <PublicOnlyRoute component={LoginPage} />} />
         <Route path="/signup" component={() => <PublicOnlyRoute component={SignupPage} />} />
         <Route path="/" component={() => <ProtectedRoute component={DashboardPage} />} />
+        <Route path="/investment-desk" component={() => <ProtectedRoute component={InvestmentDeskPage} />} />
         <Route path="/portfolio" component={() => <ProtectedRoute component={PortfolioPage} />} />
         <Route path="/holdings" component={() => <ProtectedRoute component={HoldingsPage} />} />
         <Route path="/deals" component={() => <ProtectedRoute component={DealsPage} />} />
