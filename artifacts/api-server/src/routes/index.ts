@@ -10,6 +10,7 @@ import adminRouter from "./admin";
 import cbnRouter from "./cbn";
 import mmRatesRouter from "./mm-rates";
 import aiRouter from "./ai";
+import investmentDeskRouter from "./investment-desk";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(adminRouter);
 router.use(cbnRouter);
 router.use(mmRatesRouter);
 router.use(aiRouter);
+router.use(investmentDeskRouter);
 
 export default router;
