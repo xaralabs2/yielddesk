@@ -1,173 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, BrainCircuit, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, BrainCircuit, CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
+import { apiRequest } from "@/lib/api-helpers";
 
-interface PositionRow {
-  key: string;
-  name: string;
-  bucket: string;
-  targetAmount: number;
-  actualAmount: number;
-  targetPct: number;
-  actualPct: number;
-  driftAmount: number;
-  driftPct: number;
-  action: "ADD" | "HOLD" | "TRIM" | "WATCH";
-}
-
-interface InvestmentDeskResponse {
-  generatedAt: string;
-  targetTotal: number;
-  actualTracked: number;
-  unallocatedToTarget: number;
-  policyStatus: "NOT_STARTED" | "BUILDING" | "FUNDED";
-  buckets: Array<{ name: string; targetAmount: number; actualAmount: number }>;
-  positions: PositionRow[];
-}
-
-const money = new Intl.NumberFormat("en-NG", {
-  style: "currency",
-  currency: "NGN",
-  maximumFractionDigits: 0,
-});
-
-function actionStyle(action: PositionRow["action"]) {
-  switch (action) {
-    case "ADD":
-      return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
-    case "TRIM":
-      return "bg-red-500/10 text-red-600 dark:text-red-400";
-    case "WATCH":
-      return "bg-amber-500/10 text-amber-600 dark:text-amber-400";
-    default:
-      return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
-  }
-}
+interface PositionRow { key: string; name: string; ticker: string | null; bucket: string; targetAmount: number; actualAmount: number; targetPct: number; actualPct: number; driftAmount: number; driftPct: number; action: "ADD" | "HOLD" | "TRIM" | "WATCH"; }
+interface InvestmentDeskResponse { generatedAt: string; targetTotal: number; actualTracked: number; unallocatedToTarget: number; policyStatus: "NOT_STARTED" | "BUILDING" | "FUNDED"; buckets: Array<{ name: string; targetAmount: number; actualAmount: number }>; positions: PositionRow[]; }
+interface RecheckResponse { generatedAt: string; policy: InvestmentDeskResponse; marketContext: { ntb: any; moneyMarket: any }; review: { attentionCount: number; highestPriority: Array<Pick<PositionRow, "key" | "name" | "ticker" | "action" | "driftAmount" | "driftPct">>; note: string }; }
+const money = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 });
+function actionStyle(action: PositionRow["action"]) { if (action === "ADD") return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"; if (action === "TRIM") return "bg-red-500/10 text-red-600 dark:text-red-400"; if (action === "WATCH") return "bg-amber-500/10 text-amber-600 dark:text-amber-400"; return "bg-blue-500/10 text-blue-600 dark:text-blue-400"; }
 
 export default function InvestmentDeskPage() {
-  const { data, isLoading, error } = useQuery<InvestmentDeskResponse>({
-    queryKey: ["/api/investment-desk"],
-    refetchInterval: 60_000,
-  });
-
-  if (isLoading) {
-    return <div className="p-8 text-sm text-muted-foreground">Loading investment desk…</div>;
-  }
-
-  if (error || !data) {
-    return <div className="p-8 text-sm text-destructive">Unable to load the investment desk.</div>;
-  }
-
-  const fundedPct = Math.min(100, (data.actualTracked / data.targetTotal) * 100);
-  const attentionCount = data.positions.filter((position) => position.action !== "HOLD").length;
-
-  return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-primary font-medium text-sm mb-1">
-            <BrainCircuit className="w-4 h-4" />
-            Personal Investment Policy
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">₦60m Investment Desk</h1>
-          <p className="text-muted-foreground mt-1">
-            Deterministic target allocation, actual holdings, drift and review actions.
-          </p>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          Updated {new Date(data.generatedAt).toLocaleString()}
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <Metric label="Policy capital" value={money.format(data.targetTotal)} />
-        <Metric label="Tracked holdings" value={money.format(data.actualTracked)} />
-        <Metric label="Still to deploy" value={money.format(Math.max(0, data.unallocatedToTarget))} />
-        <Metric label="Needs review" value={`${attentionCount} positions`} />
-      </div>
-
-      <div className="rounded-xl border bg-card p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="font-semibold">Funding progress</h2>
-            <p className="text-sm text-muted-foreground">Status: {data.policyStatus.replace("_", " ")}</p>
-          </div>
-          <div className="font-semibold">{fundedPct.toFixed(1)}%</div>
-        </div>
-        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-          <div className="h-full bg-primary rounded-full" style={{ width: `${fundedPct}%` }} />
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {data.buckets.map((bucket) => {
-          const pct = bucket.targetAmount > 0 ? (bucket.actualAmount / bucket.targetAmount) * 100 : 0;
-          return (
-            <div key={bucket.name} className="rounded-xl border bg-card p-5">
-              <div className="text-sm text-muted-foreground">{bucket.name}</div>
-              <div className="mt-1 text-xl font-semibold">{money.format(bucket.actualAmount)}</div>
-              <div className="mt-2 text-xs text-muted-foreground">
-                Target {money.format(bucket.targetAmount)} · {pct.toFixed(0)}% funded
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="rounded-xl border bg-card overflow-hidden">
-        <div className="p-5 border-b">
-          <h2 className="font-semibold">Target vs actual</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            ADD/TRIM/WATCH are allocation-drift signals only; they are not price-based trading recommendations.
-          </p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-muted-foreground">
-              <tr>
-                <th className="text-left font-medium px-5 py-3">Asset</th>
-                <th className="text-left font-medium px-5 py-3">Bucket</th>
-                <th className="text-right font-medium px-5 py-3">Target</th>
-                <th className="text-right font-medium px-5 py-3">Actual</th>
-                <th className="text-right font-medium px-5 py-3">Drift</th>
-                <th className="text-right font-medium px-5 py-3">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {data.positions.map((position) => (
-                <tr key={position.key} className="hover:bg-muted/20">
-                  <td className="px-5 py-4 font-medium">{position.name}</td>
-                  <td className="px-5 py-4 text-muted-foreground">{position.bucket}</td>
-                  <td className="px-5 py-4 text-right">{money.format(position.targetAmount)}</td>
-                  <td className="px-5 py-4 text-right">{money.format(position.actualAmount)}</td>
-                  <td className="px-5 py-4 text-right">
-                    <span className={position.driftAmount > 0 ? "text-emerald-600" : position.driftAmount < 0 ? "text-amber-600" : "text-muted-foreground"}>
-                      {position.driftAmount > 0 ? "+" : ""}{money.format(position.driftAmount)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${actionStyle(position.action)}`}>
-                      {position.action === "ADD" && <ArrowUpRight className="w-3 h-3" />}
-                      {position.action === "TRIM" && <ArrowDownRight className="w-3 h-3" />}
-                      {position.action === "WATCH" && <AlertTriangle className="w-3 h-3" />}
-                      {position.action === "HOLD" && <CheckCircle2 className="w-3 h-3" />}
-                      {position.action}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+  const { data, isLoading, error } = useQuery<InvestmentDeskResponse>({ queryKey: ["/api/investment-desk"], refetchInterval: 60_000 });
+  const [recheck, setRecheck] = useState<RecheckResponse | null>(null); const [brief, setBrief] = useState(""); const [busy, setBusy] = useState(false);
+  async function runReview() { setBusy(true); try { const r = await apiRequest("GET", "/api/investment-desk/recheck"); const review = await r.json() as RecheckResponse; setRecheck(review); const b = await apiRequest("POST", "/api/ai/portfolio-cio-brief", { review: review.review }); const ai = await b.json(); setBrief(ai.brief || ""); } catch (e: any) { setBrief(`Review failed: ${e.message}`); } finally { setBusy(false); } }
+  if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Loading investment desk…</div>;
+  if (error || !data) return <div className="p-8 text-sm text-destructive">Unable to load the investment desk.</div>;
+  const fundedPct = Math.min(100, (data.actualTracked / data.targetTotal) * 100); const attentionCount = data.positions.filter((p) => p.action !== "HOLD").length;
+  return <div className="p-6 lg:p-8 space-y-6">
+    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><div><div className="flex items-center gap-2 text-primary font-medium text-sm mb-1"><BrainCircuit className="w-4 h-4" />Personal Investment Policy</div><h1 className="text-3xl font-bold tracking-tight">₦60m Investment Desk</h1><p className="text-muted-foreground mt-1">Target allocation, actual holdings, drift and guarded AI review.</p></div><button onClick={runReview} disabled={busy} className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{busy ? <RefreshCw className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4"/>}{busy ? "Rechecking…" : "Recheck portfolio"}</button></div>
+    <div className="grid gap-4 md:grid-cols-4"><Metric label="Policy capital" value={money.format(data.targetTotal)} /><Metric label="Tracked holdings" value={money.format(data.actualTracked)} /><Metric label="Still to deploy" value={money.format(Math.max(0, data.unallocatedToTarget))} /><Metric label="Needs review" value={`${attentionCount} positions`} /></div>
+    {recheck && <div className="rounded-xl border bg-card p-5"><div className="flex items-center justify-between"><h2 className="font-semibold">Latest recheck</h2><span className="text-xs text-muted-foreground">{new Date(recheck.generatedAt).toLocaleString()}</span></div><div className="grid gap-3 md:grid-cols-3 mt-4"><div className="rounded-lg bg-muted/40 p-3 text-sm"><div className="text-muted-foreground">Attention</div><div className="font-semibold mt-1">{recheck.review.attentionCount} positions</div></div><div className="rounded-lg bg-muted/40 p-3 text-sm"><div className="text-muted-foreground">Latest NTB</div><div className="font-semibold mt-1">{recheck.marketContext.ntb?.stopRate ?? "No data"}{recheck.marketContext.ntb?.stopRate ? "%" : ""}</div></div><div className="rounded-lg bg-muted/40 p-3 text-sm"><div className="text-muted-foreground">Money market</div><div className="font-semibold mt-1">{recheck.marketContext.moneyMarket?.rate ?? "No data"}{recheck.marketContext.moneyMarket?.rate ? "%" : ""}</div></div></div><p className="text-xs text-muted-foreground mt-3">{recheck.review.note}</p></div>}
+    {brief && <div className="rounded-xl border bg-card p-5"><div className="flex items-center gap-2 font-semibold"><Sparkles className="w-4 h-4 text-primary"/>AI CIO brief</div><div className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground/90">{brief}</div></div>}
+    <div className="rounded-xl border bg-card p-5"><div className="flex items-center justify-between mb-3"><div><h2 className="font-semibold">Funding progress</h2><p className="text-sm text-muted-foreground">Status: {data.policyStatus.replace("_", " ")}</p></div><div className="font-semibold">{fundedPct.toFixed(1)}%</div></div><div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className="h-full bg-primary rounded-full" style={{ width: `${fundedPct}%` }} /></div></div>
+    <div className="grid gap-4 md:grid-cols-3">{data.buckets.map((bucket) => <div key={bucket.name} className="rounded-xl border bg-card p-5"><div className="text-sm text-muted-foreground">{bucket.name}</div><div className="mt-1 text-xl font-semibold">{money.format(bucket.actualAmount)}</div><div className="mt-2 text-xs text-muted-foreground">Target {money.format(bucket.targetAmount)} · {(bucket.targetAmount ? bucket.actualAmount / bucket.targetAmount * 100 : 0).toFixed(0)}% funded</div></div>)}</div>
+    <div className="rounded-xl border bg-card overflow-hidden"><div className="p-5 border-b"><h2 className="font-semibold">Target vs actual</h2><p className="text-sm text-muted-foreground mt-1">ADD/TRIM/WATCH are allocation-drift signals. Live equity valuation is intentionally not fabricated.</p></div><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-muted/40 text-muted-foreground"><tr><th className="text-left font-medium px-5 py-3">Asset</th><th className="text-left font-medium px-5 py-3">Ticker</th><th className="text-right font-medium px-5 py-3">Target</th><th className="text-right font-medium px-5 py-3">Actual</th><th className="text-right font-medium px-5 py-3">Drift</th><th className="text-right font-medium px-5 py-3">Action</th></tr></thead><tbody className="divide-y">{data.positions.map((p) => <tr key={p.key} className="hover:bg-muted/20"><td className="px-5 py-4 font-medium">{p.name}<div className="text-xs text-muted-foreground">{p.bucket}</div></td><td className="px-5 py-4 text-muted-foreground">{p.ticker || "—"}</td><td className="px-5 py-4 text-right">{money.format(p.targetAmount)}</td><td className="px-5 py-4 text-right">{money.format(p.actualAmount)}</td><td className="px-5 py-4 text-right">{p.driftAmount > 0 ? "+" : ""}{money.format(p.driftAmount)}</td><td className="px-5 py-4 text-right"><span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${actionStyle(p.action)}`}>{p.action === "ADD" && <ArrowUpRight className="w-3 h-3"/>}{p.action === "TRIM" && <ArrowDownRight className="w-3 h-3"/>}{p.action === "WATCH" && <AlertTriangle className="w-3 h-3"/>}{p.action === "HOLD" && <CheckCircle2 className="w-3 h-3"/>}{p.action}</span></td></tr>)}</tbody></table></div></div>
+  </div>;
 }
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border bg-card p-5">
-      <div className="text-sm text-muted-foreground">{label}</div>
-      <div className="mt-1 text-2xl font-semibold tracking-tight">{value}</div>
-    </div>
-  );
-}
+function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-xl border bg-card p-5"><div className="text-sm text-muted-foreground">{label}</div><div className="mt-1 text-2xl font-semibold tracking-tight">{value}</div></div>; }
