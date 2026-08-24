@@ -8,7 +8,7 @@ import {
   ngxDerivedMetricsTable,
   ngxSecuritiesTable,
 } from "@workspace/db";
-import { requireAuth } from "../middlewares/auth";
+import { requireAdmin, requireAuth } from "../middlewares/auth";
 import { syncNgxEquitySnapshot } from "../lib/ngx-market-data";
 
 const router: IRouter = Router();
@@ -136,7 +136,7 @@ router.get("/ngx/prices/:symbol", requireAuth, async (req, res): Promise<void> =
   res.json({ symbol, prices, count: prices.length });
 });
 
-router.post("/ngx/sync/equities", requireAuth, async (_req, res): Promise<void> => {
+router.post("/ngx/sync/equities", requireAuth, requireAdmin, async (_req, res): Promise<void> => {
   try {
     const result = await syncNgxEquitySnapshot();
     res.json({ success: true, ...result });
