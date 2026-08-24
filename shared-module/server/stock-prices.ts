@@ -26,7 +26,7 @@ async function fetchAllNgxData(): Promise<void> {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        "User-Agent": "MacroLens/1.0 (SoliDeo Intelligence Platform)",
+        "User-Agent": "YieldDesk/1.0 (Nigerian Investment Intelligence Platform)",
       },
     });
     clearTimeout(timeout);
