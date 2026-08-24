@@ -12,6 +12,7 @@ import mmRatesRouter from "./mm-rates";
 import aiRouter from "./ai";
 import investmentDeskRouter from "./investment-desk";
 import diasporaSimulationRouter from "./diaspora-simulation";
+import ngxRouter from "./ngx";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(mmRatesRouter);
 router.use(aiRouter);
 router.use(investmentDeskRouter);
 router.use(diasporaSimulationRouter);
+router.use(ngxRouter);
 
 export default router;
