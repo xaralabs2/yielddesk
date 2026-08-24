@@ -9,3 +9,4 @@ export * from "./cbn-policy-rates";
 export * from "./portfolio-holdings";
 export * from "./diaspora-profiles";
 export * from "./simulation";
+export * from "./ngx-market-data";
