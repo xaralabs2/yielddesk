@@ -2,7 +2,7 @@
 
 **Capital Allocation & Yield Optimization Platform for Nigerian Investments**
 
-YieldDesk is an AI-native investment intelligence, simulation, portfolio management, and capital-allocation platform focused on Nigerian markets. It combines live market data, deterministic financial engines, portfolio intelligence, and Xara AI OS to help investors understand opportunities, practice investment decisions, review real holdings, and make better-informed capital-allocation decisions.
+YieldDesk is an AI-native investment intelligence, simulation, portfolio management, and capital-allocation platform focused on Nigerian markets. It combines live market data, deterministic investment mathematics, portfolio intelligence, and Xara AI OS to help investors understand opportunities, practice investment decisions, review real holdings, and make better-informed capital-allocation decisions.
 
 YieldDesk is **not a stockbroker, custodian, or trade-execution platform**. Real investments are executed outside YieldDesk through the investor's chosen provider and can then be recorded manually or, as supported, imported from investment documents for ongoing review.
 
@@ -12,6 +12,7 @@ YieldDesk documentation intentionally separates current capabilities from future
 
 - **Available today:** [`docs/YIELDDESK_NOW.md`](docs/YIELDDESK_NOW.md)
 - **Future-state V2:** [`docs/YIELDDESK_FUTURE.md`](docs/YIELDDESK_FUTURE.md)
+- **Investment Mathematics Engine:** [`docs/INVESTMENT_MATHEMATICS_ENGINE.md`](docs/INVESTMENT_MATHEMATICS_ENGINE.md)
 - **Core + expansion roadmap:** [`docs/YIELDDESK_V2_ROADMAP.md`](docs/YIELDDESK_V2_ROADMAP.md)
 
 The target V2 decision language is:
@@ -21,6 +22,10 @@ The target V2 decision language is:
 After investment:
 
 **THESIS INTACT → THESIS WATCH → THESIS BROKEN**
+
+The central capital-allocation test is:
+
+> **Expected Return vs Required Return vs Risk vs Best Available Alternative**
 
 ## Product Model
 
@@ -60,24 +65,9 @@ No simulated trade purchases or sells a real security, sends an order to a broke
 
 YieldDesk is being expanded for Nigerians globally who want to understand and participate in Nigerian investment markets.
 
-The intended journey is:
-
 **Discover → Learn → Watch → Simulate → Get Guided → Ready to Invest → Invest Externally → Record/Upload → Review → Monitor → Reassess**
 
-The diaspora profile captures context used to personalize the experience:
-
-- Country of residence
-- Home/base currency
-- Investment experience
-- Risk tolerance
-- Investment horizon
-- Goals
-- Asset interests
-- Estimated capital range
-- Readiness stage
-- Consent for future third-party access updates
-
-`Ready to Invest` records investment intent and readiness. It does not open an investment account or execute a transaction.
+The diaspora profile captures country/base currency, experience, risk tolerance, horizon, goals, asset interests, estimated capital, readiness and consent context. `Ready to Invest` records intent; it does not open an account or execute a transaction.
 
 ## Investment Coverage
 
@@ -100,55 +90,43 @@ The portfolio framework currently uses three pillars:
 
 Currency exposure is treated as a cross-portfolio dimension rather than a fourth pillar.
 
+## Investment Mathematics
+
+YieldDesk V2 treats investment mathematics as core infrastructure, not decorative analytics.
+
+Target deterministic measures include:
+
+- **Returns:** CAGR, IRR, XIRR, TWRR, MWRR, holding-period return, total/annualized return
+- **Economic return:** nominal NGN, real NGN, USD/home-currency return and FX attribution
+- **Income:** cash yield, current/effective yield, yield on cost, dividend CAGR and coverage
+- **Risk:** volatility, downside deviation, maximum drawdown, recovery, probability of loss and stress loss
+- **Risk-adjusted:** Sharpe, Sortino, excess expected return and illiquidity premium
+- **Valuation:** NPV, DCF, EV, NAV, SOTP, earnings/FCF yield, Margin of Safety and probability-weighted value
+- **Property/private:** IRR, XIRR, MOIC/equity multiple, cash-on-cash, payback and exit-value stress
+- **Fixed income:** YTM, real yield, duration, modified duration, convexity and credit spread
+- **Portfolio:** TWRR, MWRR, alpha, beta, correlation, contribution, attribution, concentration and drawdown
+
+YieldDesk should explicitly compare **Expected Return**, **Required Return**, and the **best relevant alternative**, including the premium received for accepting illiquidity.
+
 ## FX Intelligence
 
-FX is important to YieldDesk primarily as an investment-intelligence layer, especially for diaspora investors.
-
-Planned capabilities include:
-
-- NGN vs USD/GBP/CAD/EUR views
-- Entry FX rate vs current FX rate
-- NGN investment return
-- Home-currency return
-- FX contribution to total return
-- Inflation-adjusted return
-- Currency scenarios and alerts
-
-YieldDesk is not intended to become a leveraged forex-trading or forex-brokerage platform.
+FX is an investment-intelligence layer, especially for diaspora investors. Target capabilities include entry vs current FX, NGN return, home-currency return, FX contribution, inflation-adjusted return and currency scenarios. YieldDesk is not intended to become a leveraged forex-trading or forex-brokerage platform.
 
 ## AI Architecture
 
 YieldDesk is a product on top of **Xara AI OS and the wider Xara ecosystem**.
 
-YieldDesk owns the investment-domain logic and data. Xara AI OS provides shared AI infrastructure such as model routing, orchestration, tools, research/RAG patterns, evaluations, observability, and agentic capabilities.
+YieldDesk owns investment-domain logic and data. Xara AI OS provides shared model routing, orchestration, tools, research/RAG patterns, evaluations, observability and agentic capabilities.
 
-The architectural rule is:
+> **Deterministic engines calculate financial facts. Xara AI OS reasons, explains, researches, personalizes and orchestrates. The human decides.**
 
-> **Deterministic engines calculate financial facts. Xara AI OS reasons, explains, researches, personalizes, and orchestrates. The human decides.**
-
-Target intelligence domains include:
-
-- Market Intelligence
-- Portfolio Intelligence
-- Decision Intelligence
-- Learning/Simulation Intelligence
-- Document Intelligence
-- Investor/Diaspora Intelligence
-
-The V2 target adds specialist investment intelligence around evidence, normalized earnings and cash, sector-specific valuation, market-implied expectations, counter-thesis, portfolio fit, thesis monitoring, and investor memory. See `docs/YIELDDESK_FUTURE.md`.
+The V2 target adds specialist intelligence around evidence, normalized earnings/cash, sector valuation, market-implied expectations, counter-thesis, portfolio fit, thesis monitoring, attribution and investor memory.
 
 ## Market Data
 
-Current and planned data sources include:
+Current and planned sources include CBN, FMDQ, NGX/market-data providers, GetEquity, manual/dealer data, broker notes, issuer documents, research and user uploads.
 
-- CBN — NTB, FGN Bond, OMO, policy/money-market indicators, FX
-- FMDQ — money-market and fixed-income context
-- NGX / market-data providers — listed equities and market data
-- GetEquity — commercial paper/deal data
-- Manual/dealer data where required
-- Broker notes, issuer documents, investment research, and user-uploaded documents
-
-The target architecture is a YieldDesk **Market Data Fabric** that normalizes observations and preserves source, timestamp, freshness, currency, and provenance before the data reaches portfolio/AI features.
+The target **Market Data Fabric** normalizes observations and preserves source, timestamp, freshness, currency and provenance before data reaches portfolio or AI features.
 
 ## Current Stack
 
@@ -173,15 +151,15 @@ The target architecture is a YieldDesk **Market Data Fabric** that normalizes ob
 ```text
 yielddesk/
 ├── artifacts/
-│   ├── yield-desk/        # React/Vite web application
-│   ├── api-server/        # Express API / Vercel API
-│   └── mockup-sandbox/    # Design sandbox
+│   ├── yield-desk/
+│   ├── api-server/
+│   └── mockup-sandbox/
 ├── lib/
-│   ├── api-spec/          # OpenAPI specification
-│   ├── api-client-react/  # Generated React Query hooks
-│   ├── api-zod/           # Generated validators
-│   └── db/                # PostgreSQL / Drizzle schemas
-├── shared-module/         # Portfolio, investment and market intelligence engines
+│   ├── api-spec/
+│   ├── api-client-react/
+│   ├── api-zod/
+│   └── db/
+├── shared-module/
 ├── docs/
 ├── scripts/
 ├── package.json
@@ -195,51 +173,32 @@ The monorepo is designed as two Vercel projects connected to the same GitHub rep
 - `yielddesk-web` → `artifacts/yield-desk`
 - `yielddesk-api` → `artifacts/api-server`
 
-The API project includes the Vercel serverless entry point and scheduled CBN synchronization. See `docs/vercel-deployment.md`.
-
-## Phase 5 — Diaspora + Simulation Foundation
-
-The current feature branch adds:
-
-- `diaspora_profiles`
-- `simulation_accounts`
-- `simulation_holdings`
-- `simulation_transactions`
-- `/api/diaspora/profile`
-- `/api/simulation/accounts`
-- simulated NGX equity trading
-- `/diaspora` UI
-- `/simulator` UI
-
-The existing `/portfolio` and real investment data model remain intact.
-
-See `docs/diaspora-simulation-foundation.md` for implementation details.
+The API includes the serverless entry point and scheduled CBN synchronization. See `docs/vercel-deployment.md`.
 
 ## V2 Build Path
 
-The next product evolution is intentionally split into a **Core Engine** and **Expansion Engine**.
-
 ### Core Engine — Weeks 1–13
 
-1. Freeze the YieldDesk Investment Constitution and asset ontology.
-2. Build Evidence Graph, source provenance, freshness and Assumption Registry.
-3. Harden deterministic financial calculation services.
-4. Add business-quality, earnings-normalization and cash-conversion intelligence.
-5. Add sector-specific valuation and Bear/Base/Bull scenarios.
-6. Add Market-Implied Expectations and Expectation Gap.
-7. Add Margin of Safety and mandatory Counter-Thesis review.
-8. Add auditable INVESTIGATE / INVESTABLE decision synthesis.
+1. Freeze Investment Constitution, asset ontology and decision states.
+2. Build Evidence Graph, provenance, freshness and Assumption Registry.
+3. Build deterministic Investment Mathematics Engine.
+4. Add CAGR/IRR/XIRR, real/FX return, benchmarks and required-return framework.
+5. Add business quality, earnings normalization and cash conversion.
+6. Add sector valuation, Bear/Base/Bull and probability-weighted outcomes.
+7. Add Market-Implied Expectations, Expectation Gap and Margin of Safety.
+8. Add mandatory Counter-Thesis and auditable INVESTIGATE / INVESTABLE synthesis.
 
 ### Expansion Engine — Weeks 14–24+
 
-1. Add opportunity cost, Portfolio Fit, factor exposure and hidden concentration.
-2. Add position sizing and Capital Deployment / Buy Queue.
-3. Add Thesis Ledger and INTACT / WATCH / BROKEN monitoring.
-4. Add Decision Journal, management memory and Investor Learning.
-5. Extend native intelligence engines across Real Estate/SPVs, Fixed Income, Money Market and Alternatives.
-6. Expand YieldIntel into a natural-language operating layer across research, portfolio and monitoring.
+1. Add opportunity cost, illiquidity premium, Portfolio Fit, factor exposure and concentration.
+2. Add TWRR/MWRR portfolio performance, downside analytics and position sizing.
+3. Add Capital Deployment / Buy Queue.
+4. Add Thesis Ledger and INTACT / WATCH / BROKEN monitoring.
+5. Add Return Attribution, Decision Journal, management memory and Investor Learning.
+6. Extend native intelligence across Real Estate/SPVs, Fixed Income, Money Market and Alternatives.
+7. Expand YieldIntel into a natural-language operating layer across research, portfolio and monitoring.
 
-See [`docs/YIELDDESK_V2_ROADMAP.md`](docs/YIELDDESK_V2_ROADMAP.md) for the complete roadmap.
+See [`docs/YIELDDESK_V2_ROADMAP.md`](docs/YIELDDESK_V2_ROADMAP.md).
 
 ## Key Commands
 
@@ -256,8 +215,8 @@ npx tsx scripts/src/seed.ts
 
 YieldDesk's current role is:
 
-**Education + Simulation + Market Intelligence + Portfolio Recording + Investment Review + Risk/FX/Allocation Intelligence**
+**Education + Simulation + Market Intelligence + Portfolio Recording + Investment Review + Risk / FX / Allocation Intelligence**
 
-The future-state product adds deeper AI-native research, valuation, adversarial analysis, portfolio intelligence, monitoring and learning while keeping critical financial math deterministic and the investor in control.
+The future-state product adds deeper AI-native research, deterministic investment mathematics, valuation, adversarial analysis, benchmark/opportunity-cost intelligence, portfolio intelligence, monitoring, attribution and learning while keeping the investor in control.
 
 YieldDesk does not custody client funds, execute securities transactions, or operate as a stockbroker.
