@@ -19,7 +19,7 @@ YieldDesk is not a stockbroker, custodian, or trade-execution platform. Real inv
 | Dashboard | Investment dashboard and asset-class navigation |
 | Comparison | Cross-asset comparison views |
 | Inflation context | Nigerian inflation benchmark in investment comparison |
-| Return metrics | Yield, IRR and return-oriented comparison foundation |
+| Return metrics | Yield, IRR and return-oriented comparison foundation; the full V2 mathematics engine is not yet implemented |
 | YieldDesk Score | Composite analysis score across fundamentals, valuation, cash flow/yield, growth, inflation hedge, governance, liquidity and risk/pessimism |
 | YieldIntel | AI analysis / conversational intelligence foundation |
 | AI Market Brief | AI market-intelligence capability |
@@ -37,6 +37,14 @@ YieldDesk is not a stockbroker, custodian, or trade-execution platform. Real inv
 | Deployment | Vercel web + API architecture |
 | Core stack | pnpm, Node 24, TypeScript 5.9, React 19, Vite, Tailwind, shadcn/ui, Wouter, TanStack Query, Express 5, PostgreSQL, Drizzle, Zod, OpenAPI/Orval |
 | AI platform | YieldDesk domain intelligence on top of Xara AI OS direction |
+
+## Mathematics Baseline vs V2
+
+Today YieldDesk has return/yield/IRR-oriented calculation and comparison foundations. It does **not** yet have the complete deterministic Investment Mathematics Engine now specified for V2.
+
+The V2 target adds CAGR, XIRR, TWRR, MWRR, annualized and real returns, USD/home-currency return, benchmark comparison, required return, illiquidity premium, drawdown/downside analytics, MOIC, fixed-income duration/YTM measures, probability-weighted outcomes and return attribution.
+
+See `INVESTMENT_MATHEMATICS_ENGINE.md` for the target specification.
 
 ## Current Decision Flow
 
