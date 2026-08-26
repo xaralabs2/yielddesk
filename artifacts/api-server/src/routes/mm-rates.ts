@@ -8,33 +8,10 @@ import { fetchGeCpTokens, fetchAllDeals, isGetEquityConfigured } from "../lib/ge
 const router: IRouter = Router();
 
 router.get("/mm/rates", requireAuth, async (_req, res): Promise<void> => {
-  const fmdqRates = await db
-    .select()
-    .from(mmRatesTable)
-    .where(eq(mmRatesTable.source, "FMDQ"))
-    .orderBy(desc(mmRatesTable.date))
-    .limit(30);
-
-  const manualRates = await db
-    .select()
-    .from(mmRatesTable)
-    .where(eq(mmRatesTable.source, "MANUAL"))
-    .orderBy(desc(mmRatesTable.date))
-    .limit(30);
-
-  const ntbProxy = await db
-    .select()
-    .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "NTB"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(6);
-
-  const omoProxy = await db
-    .select()
-    .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "OMO"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(6);
+  const fmdqRates = await db.select().from(mmRatesTable).where(eq(mmRatesTable.source, "FMDQ")).orderBy(desc(mmRatesTable.date)).limit(30);
+  const manualRates = await db.select().from(mmRatesTable).where(eq(mmRatesTable.source, "MANUAL")).orderBy(desc(mmRatesTable.date)).limit(30);
+  const ntbProxy = await db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "NTB")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(6);
+  const omoProxy = await db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "OMO")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(6);
 
   const proxyRates = [...ntbProxy, ...omoProxy].map((r) => ({
     id: r.id,
@@ -47,59 +24,22 @@ router.get("/mm/rates", requireAuth, async (_req, res): Promise<void> => {
     createdAt: r.fetchedAt.toISOString(),
   }));
 
-  res.json({
-    fmdq: fmdqRates,
-    manual: manualRates,
-    proxy: proxyRates,
-  });
+  res.json({ fmdq: fmdqRates, manual: manualRates, proxy: proxyRates });
 });
 
 router.get("/mm/summary", requireAuth, async (_req, res): Promise<void> => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
-  const recentFmdq = await db
-    .select()
-    .from(mmRatesTable)
-    .where(
-      and(
-        eq(mmRatesTable.source, "FMDQ"),
-        gte(mmRatesTable.date, sevenDaysAgo)
-      )
-    )
-    .orderBy(desc(mmRatesTable.date))
-    .limit(20);
-
-  const recentManual = await db
-    .select()
-    .from(mmRatesTable)
-    .where(
-      and(
-        eq(mmRatesTable.source, "MANUAL"),
-        gte(mmRatesTable.date, sevenDaysAgo)
-      )
-    )
-    .orderBy(desc(mmRatesTable.date))
-    .limit(10);
-
-  const latestNtb91 = await db
-    .select()
-    .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "NTB"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(3);
+  const recentFmdq = await db.select().from(mmRatesTable).where(and(eq(mmRatesTable.source, "FMDQ"), gte(mmRatesTable.date, sevenDaysAgo))).orderBy(desc(mmRatesTable.date)).limit(20);
+  const recentManual = await db.select().from(mmRatesTable).where(and(eq(mmRatesTable.source, "MANUAL"), gte(mmRatesTable.date, sevenDaysAgo))).orderBy(desc(mmRatesTable.date)).limit(10);
+  const latestNtb91 = await db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "NTB")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(3);
 
   const ntb91 = latestNtb91.find((r) => r.tenor?.includes("91"));
   const ntb182 = latestNtb91.find((r) => r.tenor?.includes("182"));
   const ntb364 = latestNtb91.find((r) => r.tenor?.includes("364"));
-
   const fmdqByType: Record<string, { rate: number; date: string; tenor: string }> = {};
   for (const r of recentFmdq) {
     const key = `${r.rateType}_${r.tenor}`;
-    if (!fmdqByType[key]) {
-      fmdqByType[key] = { rate: r.rate, date: r.date.toISOString(), tenor: r.tenor };
-    }
+    if (!fmdqByType[key]) fmdqByType[key] = { rate: r.rate, date: r.date.toISOString(), tenor: r.tenor };
   }
 
   res.json({
@@ -116,7 +56,6 @@ router.get("/mm/summary", requireAuth, async (_req, res): Promise<void> => {
 
 router.post("/mm/rates", requireAuth, async (req, res): Promise<void> => {
   const { rateType, tenor, rate, date, notes } = req.body;
-
   if (!rateType || !tenor || rate == null || !date) {
     res.status(400).json({ error: "rateType, tenor, rate, and date are required" });
     return;
@@ -136,22 +75,17 @@ router.post("/mm/rates", requireAuth, async (req, res): Promise<void> => {
     date: new Date(date),
     notes: notes || null,
   }).returning();
-
   res.status(201).json(inserted);
 });
 
 router.delete("/mm/rates/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id);
+  const id = Number.parseInt(String(req.params.id), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid ID" });
     return;
   }
 
-  const [existing] = await db
-    .select()
-    .from(mmRatesTable)
-    .where(and(eq(mmRatesTable.id, id), eq(mmRatesTable.source, "MANUAL")));
-
+  const [existing] = await db.select().from(mmRatesTable).where(and(eq(mmRatesTable.id, id), eq(mmRatesTable.source, "MANUAL")));
   if (!existing) {
     res.status(404).json({ error: "Manual rate entry not found" });
     return;
