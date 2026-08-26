@@ -6,6 +6,22 @@ YieldDesk is an AI-native investment intelligence, simulation, portfolio managem
 
 YieldDesk is **not a stockbroker, custodian, or trade-execution platform**. Real investments are executed outside YieldDesk through the investor's chosen provider and can then be recorded manually or, as supported, imported from investment documents for ongoing review.
 
+## Product Baseline: NOW vs FUTURE
+
+YieldDesk documentation intentionally separates current capabilities from future-state design so roadmap ideas are never confused with production reality.
+
+- **Available today:** [`docs/YIELDDESK_NOW.md`](docs/YIELDDESK_NOW.md)
+- **Future-state V2:** [`docs/YIELDDESK_FUTURE.md`](docs/YIELDDESK_FUTURE.md)
+- **Core + expansion roadmap:** [`docs/YIELDDESK_V2_ROADMAP.md`](docs/YIELDDESK_V2_ROADMAP.md)
+
+The target V2 decision language is:
+
+**INVESTIGATE → INVESTABLE → ACTIONABLE**
+
+After investment:
+
+**THESIS INTACT → THESIS WATCH → THESIS BROKEN**
+
 ## Product Model
 
 YieldDesk supports two intentionally separate investment environments:
@@ -119,6 +135,8 @@ Target intelligence domains include:
 - Document Intelligence
 - Investor/Diaspora Intelligence
 
+The V2 target adds specialist investment intelligence around evidence, normalized earnings and cash, sector-specific valuation, market-implied expectations, counter-thesis, portfolio fit, thesis monitoring, and investor memory. See `docs/YIELDDESK_FUTURE.md`.
+
 ## Market Data
 
 Current and planned data sources include:
@@ -197,18 +215,31 @@ The existing `/portfolio` and real investment data model remain intact.
 
 See `docs/diaspora-simulation-foundation.md` for implementation details.
 
-## Next Build Path
+## V2 Build Path
 
-1. Validate and deploy the Phase 5 schema safely.
-2. Add canonical Market Data Fabric metadata and instrument normalization.
-3. Extend simulation to T-Bills and FGN bonds.
-4. Add diaspora FX-adjusted performance and scenarios.
-5. Add Ready-to-Invest analytics and consent lifecycle.
-6. Generalize contract-note/statement ingestion into extract → preview → confirm → real portfolio.
-7. Expand deterministic portfolio, risk, valuation, scenario, and allocation engines.
-8. Expose typed YieldDesk domain tools through Xara AI OS.
-9. Add AI-dense market, portfolio, simulation, research, document, and investor intelligence.
-10. Add GitHub Actions, AI evaluations, observability, and Xara AI Factory engineering automation.
+The next product evolution is intentionally split into a **Core Engine** and **Expansion Engine**.
+
+### Core Engine — Weeks 1–13
+
+1. Freeze the YieldDesk Investment Constitution and asset ontology.
+2. Build Evidence Graph, source provenance, freshness and Assumption Registry.
+3. Harden deterministic financial calculation services.
+4. Add business-quality, earnings-normalization and cash-conversion intelligence.
+5. Add sector-specific valuation and Bear/Base/Bull scenarios.
+6. Add Market-Implied Expectations and Expectation Gap.
+7. Add Margin of Safety and mandatory Counter-Thesis review.
+8. Add auditable INVESTIGATE / INVESTABLE decision synthesis.
+
+### Expansion Engine — Weeks 14–24+
+
+1. Add opportunity cost, Portfolio Fit, factor exposure and hidden concentration.
+2. Add position sizing and Capital Deployment / Buy Queue.
+3. Add Thesis Ledger and INTACT / WATCH / BROKEN monitoring.
+4. Add Decision Journal, management memory and Investor Learning.
+5. Extend native intelligence engines across Real Estate/SPVs, Fixed Income, Money Market and Alternatives.
+6. Expand YieldIntel into a natural-language operating layer across research, portfolio and monitoring.
+
+See [`docs/YIELDDESK_V2_ROADMAP.md`](docs/YIELDDESK_V2_ROADMAP.md) for the complete roadmap.
 
 ## Key Commands
 
@@ -223,8 +254,10 @@ npx tsx scripts/src/seed.ts
 
 ## Product Boundary
 
-YieldDesk's role is:
+YieldDesk's current role is:
 
 **Education + Simulation + Market Intelligence + Portfolio Recording + Investment Review + Risk/FX/Allocation Intelligence**
+
+The future-state product adds deeper AI-native research, valuation, adversarial analysis, portfolio intelligence, monitoring and learning while keeping critical financial math deterministic and the investor in control.
 
 YieldDesk does not custody client funds, execute securities transactions, or operate as a stockbroker.
