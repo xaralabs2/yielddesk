@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import multer from "multer";
 import pinoHttpModule from "pino-http";
 import { eq } from "drizzle-orm";
 import router from "./routes";
@@ -10,6 +11,7 @@ import { portfolioStorage } from "./lib/portfolio-storage";
 import { db, holdingsTable } from "@workspace/db";
 
 const app: Express = express();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 const pinoHttp = pinoHttpModule as unknown as (options: {
   logger: typeof logger;
@@ -24,16 +26,10 @@ app.use(
     logger,
     serializers: {
       req(req: { id?: string | number; method?: string; url?: string }) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
+        return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
       },
       res(res: { statusCode?: number }) {
-        return {
-          statusCode: res.statusCode,
-        };
+        return { statusCode: res.statusCode };
       },
     },
   }) as any,
@@ -41,14 +37,10 @@ app.use(
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use("/api", router);
 
 async function fetchUserHoldings(userId: string) {
-  const rows = await db
-    .select()
-    .from(holdingsTable)
-    .where(eq(holdingsTable.userId, parseInt(userId)));
+  const rows = await db.select().from(holdingsTable).where(eq(holdingsTable.userId, parseInt(userId)));
   return rows as any[];
 }
 
@@ -58,6 +50,7 @@ registerInvestmentPortfolioRoutes(
   requireAuth as (req: Request, res: Response, next: NextFunction) => void,
   (req: Request) => String((req as any).user?.userId ?? "0"),
   fetchUserHoldings,
+  upload.single("file") as any,
 );
 
 export default app;

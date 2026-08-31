@@ -1,5 +1,3 @@
-import type { Express, Request, Response, NextFunction } from "express";
-import multer from "multer";
 import type { IPortfolioStorage } from "../types";
 import { computePortfolioDashboard } from "./portfolio-engine";
 import { computeInvestmentLandscape } from "./investment-data";
@@ -7,10 +5,29 @@ import { computeEtfAllocation } from "./etf-engine";
 import { resolveNgxTicker, resolveNgxTickerSync } from "./stock-prices";
 import { parseBrokerPdf } from "./pdf-parser";
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+type RequestLike = {
+  body: any;
+  params: Record<string, string>;
+  file?: { mimetype: string; buffer: Buffer };
+};
 
-type AuthMiddleware = (req: Request, res: Response, next: NextFunction) => void;
-type GetUserId = (req: Request) => string;
+type ResponseLike = {
+  status(code: number): ResponseLike;
+  json(body: any): any;
+};
+
+type NextFunctionLike = () => void;
+
+type ExpressLike = {
+  get(path: string, ...handlers: any[]): any;
+  post(path: string, ...handlers: any[]): any;
+  patch(path: string, ...handlers: any[]): any;
+  delete(path: string, ...handlers: any[]): any;
+};
+
+type AuthMiddleware = (req: RequestLike, res: ResponseLike, next: NextFunctionLike) => void;
+type GetUserId = (req: RequestLike) => string;
+type UploadSingleMiddleware = (req: RequestLike, res: ResponseLike, next: NextFunctionLike) => void;
 
 type HoldingsRecord = {
   id: number;
@@ -26,68 +43,56 @@ type HoldingsRecord = {
 
 type FetchHoldings = (userId: string) => Promise<HoldingsRecord[]>;
 
-const HOLDING_TYPE_TO_PILLAR: Record<string, string> = {
-  CP: "STABILITY",
-  MMMF: "STABILITY",
-  BOND: "STABILITY",
-  STOCK: "INFLATION",
-};
-
-function convertHoldingToPortfolio(h: HoldingsRecord): import("../types").PortfolioHolding {
+function convertHoldingToPortfolio(h: HoldingsRecord) {
   return {
-    id: -h.id,
+    id: `holding-${h.id}`,
     userId: String(h.userId),
-    asset: h.issuer || h.type,
+    asset: h.issuer,
     ticker: null,
-    pillar: HOLDING_TYPE_TO_PILLAR[h.type] || "STABILITY",
+    pillar: "STABILITY" as const,
     valueNgn: h.amount,
     shares: null,
-    entryValueNgn: h.amount,
     entryFxRate: null,
     annualRentNgn: null,
     cumulativeRentNgn: null,
     corridor: null,
+    entryValueNgn: h.amount,
     entryDate: h.startDate,
     lastUpdated: h.startDate,
   };
 }
 
 export function registerInvestmentPortfolioRoutes(
-  app: Express,
+  app: ExpressLike,
   storage: IPortfolioStorage,
   isAuthenticated: AuthMiddleware,
   getUserId: GetUserId,
-  fetchHoldings?: FetchHoldings,
+  fetchHoldings: FetchHoldings | undefined,
+  uploadSingle: UploadSingleMiddleware,
 ) {
-  app.get("/api/investments", async (_req, res) => {
+  app.get("/api/investments", async (_req: RequestLike, res: ResponseLike) => {
     try {
       const latest = await storage.getLatestMacroData();
-      if (!latest) {
-        return res.status(404).json({ message: "No macro data available" });
-      }
-      const data = computeInvestmentLandscape(latest);
-      return res.json(data);
+      if (!latest) return res.status(404).json({ message: "No macro data available" });
+      return res.json(computeInvestmentLandscape(latest));
     } catch (error) {
       console.error("Investments API error:", error);
       return res.status(500).json({ message: "Failed to fetch investment data" });
     }
   });
 
-  app.get("/api/etf/allocation", async (_req, res) => {
+  app.get("/api/etf/allocation", async (_req: RequestLike, res: ResponseLike) => {
     try {
       const latest = await storage.getLatestMacroData();
-      if (!latest) {
-        return res.status(404).json({ message: "No macro data available" });
-      }
-      const data = computeEtfAllocation(latest);
-      return res.json(data);
+      if (!latest) return res.status(404).json({ message: "No macro data available" });
+      return res.json(computeEtfAllocation(latest));
     } catch (error) {
       console.error("ETF allocation API error:", error);
       return res.status(500).json({ message: "Failed to compute ETF allocation" });
     }
   });
 
-  app.get("/api/portfolio", isAuthenticated, async (req, res) => {
+  app.get("/api/portfolio", isAuthenticated, async (req: RequestLike, res: ResponseLike) => {
     try {
       const userId = getUserId(req);
       const [portfolioHoldings, config, latestMacro, externalHoldings] = await Promise.all([
@@ -96,44 +101,33 @@ export function registerInvestmentPortfolioRoutes(
         storage.getLatestMacroData(),
         fetchHoldings ? fetchHoldings(userId) : Promise.resolve([]),
       ]);
-      const convertedExternal = externalHoldings
-        .filter((h) => h.status === "ACTIVE")
-        .map(convertHoldingToPortfolio);
-      const allHoldings = [...portfolioHoldings, ...convertedExternal];
-      const dashboard = await computePortfolioDashboard(allHoldings, config, latestMacro);
-      return res.json(dashboard);
+      const convertedExternal = externalHoldings.filter((h) => h.status === "ACTIVE").map(convertHoldingToPortfolio);
+      return res.json(await computePortfolioDashboard([...portfolioHoldings, ...convertedExternal], config, latestMacro));
     } catch (error) {
       console.error("Portfolio API error:", error);
       return res.status(500).json({ message: "Failed to fetch portfolio data" });
     }
   });
 
-  app.post("/api/portfolio/holdings", isAuthenticated, async (req, res) => {
+  app.post("/api/portfolio/holdings", isAuthenticated, async (req: RequestLike, res: ResponseLike) => {
     try {
       const userId = getUserId(req);
       const { asset, ticker, pillar, valueNgn, shares, annualRentNgn, corridor, entryDate, entryValueNgn } = req.body;
-      if (!asset || !pillar || valueNgn == null) {
-        return res.status(400).json({ message: "asset, pillar, and valueNgn are required" });
-      }
-      if (!["STABILITY", "INFLATION", "STRATEGIC"].includes(pillar)) {
-        return res.status(400).json({ message: "pillar must be STABILITY, INFLATION, or STRATEGIC" });
-      }
+      if (!asset || !pillar || valueNgn == null) return res.status(400).json({ message: "asset, pillar, and valueNgn are required" });
+      if (!["STABILITY", "INFLATION", "STRATEGIC"].includes(pillar)) return res.status(400).json({ message: "pillar must be STABILITY, INFLATION, or STRATEGIC" });
       const validCorridors = ["Lekki Phase 1", "Ibeju Lekki", "Victoria Island", "Ikoyi", "Eko Atlantic", "Other"];
       let entryFxRate = null;
       if (pillar === "STRATEGIC") {
         const latestMacro = await storage.getLatestMacroData();
         entryFxRate = latestMacro?.fxRate ?? null;
       }
-
       let resolvedTicker = (ticker || asset).toUpperCase().trim();
       let resolvedAsset = asset;
       const ngxMatch = await resolveNgxTicker(ticker || asset);
       if (ngxMatch) {
         resolvedTicker = ngxMatch.symbol;
         if (!ticker) resolvedAsset = ngxMatch.name;
-        console.log(`[NGX verify] "${ticker || asset}" → ${ngxMatch.symbol} (${ngxMatch.name}), price ₦${ngxMatch.price.toFixed(2)}`);
       }
-
       if (shares != null && pillar !== "STRATEGIC") {
         const existing = await storage.getPortfolioHoldings(userId);
         const match = existing.find(h => {
@@ -150,17 +144,10 @@ export function registerInvestmentPortfolioRoutes(
           const totalShares = oldShares + newShares;
           const totalCost = oldCost + newCost;
           const avgPrice = totalCost / totalShares;
-          const holding = await storage.updatePortfolioHolding(match.id, userId, {
-            ticker: resolvedTicker,
-            shares: totalShares,
-            valueNgn: totalShares * avgPrice,
-            entryValueNgn: totalCost,
-            lastUpdated: new Date(),
-          });
+          const holding = await storage.updatePortfolioHolding(match.id, userId, { ticker: resolvedTicker, shares: totalShares, valueNgn: totalShares * avgPrice, entryValueNgn: totalCost, lastUpdated: new Date() });
           return res.json({ ...holding, merged: true, previousShares: oldShares, addedShares: newShares });
         }
       }
-
       const holding = await storage.addPortfolioHolding({
         userId,
         asset: resolvedAsset,
@@ -183,7 +170,7 @@ export function registerInvestmentPortfolioRoutes(
     }
   });
 
-  app.patch("/api/portfolio/holdings/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/portfolio/holdings/:id", isAuthenticated, async (req: RequestLike, res: ResponseLike) => {
     try {
       const userId = getUserId(req);
       const id = parseInt(req.params.id);
@@ -193,9 +180,7 @@ export function registerInvestmentPortfolioRoutes(
       if (asset != null) updates.asset = asset;
       if (ticker !== undefined) updates.ticker = ticker;
       if (pillar != null) {
-        if (!["STABILITY", "INFLATION", "STRATEGIC"].includes(pillar)) {
-          return res.status(400).json({ message: "pillar must be STABILITY, INFLATION, or STRATEGIC" });
-        }
+        if (!["STABILITY", "INFLATION", "STRATEGIC"].includes(pillar)) return res.status(400).json({ message: "pillar must be STABILITY, INFLATION, or STRATEGIC" });
         updates.pillar = pillar;
       }
       if (valueNgn != null) {
@@ -227,11 +212,10 @@ export function registerInvestmentPortfolioRoutes(
     }
   });
 
-  app.delete("/api/portfolio/holdings/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/portfolio/holdings/:id", isAuthenticated, async (req: RequestLike, res: ResponseLike) => {
     try {
       const userId = getUserId(req);
-      const id = parseInt(req.params.id);
-      await storage.deletePortfolioHolding(id, userId);
+      await storage.deletePortfolioHolding(parseInt(req.params.id), userId);
       return res.json({ success: true });
     } catch (error) {
       console.error("Delete holding error:", error);
@@ -239,46 +223,27 @@ export function registerInvestmentPortfolioRoutes(
     }
   });
 
-  app.post("/api/portfolio/config", isAuthenticated, async (req, res) => {
+  app.post("/api/portfolio/config", isAuthenticated, async (req: RequestLike, res: ResponseLike) => {
     try {
       const userId = getUserId(req);
       const { baselineValue, targetValue, stabilityTarget, inflationTarget, strategicTarget, tolerance, availableCash } = req.body;
-      if (baselineValue == null) {
-        return res.status(400).json({ message: "baselineValue is required" });
-      }
-      const config = await storage.upsertPortfolioConfig({
-        userId,
-        baselineValue: Number(baselineValue),
-        targetValue: Number(targetValue ?? 0),
-        stabilityTarget: Number(stabilityTarget ?? 0.10),
-        inflationTarget: Number(inflationTarget ?? 0.15),
-        strategicTarget: Number(strategicTarget ?? 0.75),
-        tolerance: Number(tolerance ?? 0.05),
-        availableCash: Number(availableCash ?? 0),
-      });
-      return res.json(config);
+      if (baselineValue == null) return res.status(400).json({ message: "baselineValue is required" });
+      return res.json(await storage.upsertPortfolioConfig({ userId, baselineValue: Number(baselineValue), targetValue: Number(targetValue ?? 0), stabilityTarget: Number(stabilityTarget ?? 0.10), inflationTarget: Number(inflationTarget ?? 0.15), strategicTarget: Number(strategicTarget ?? 0.75), tolerance: Number(tolerance ?? 0.05), availableCash: Number(availableCash ?? 0) }));
     } catch (error) {
       console.error("Config update error:", error);
       return res.status(500).json({ message: "Failed to update config" });
     }
   });
 
-  app.post("/api/portfolio/parse-pdf", isAuthenticated, upload.single("file"), async (req, res) => {
+  app.post("/api/portfolio/parse-pdf", isAuthenticated, uploadSingle, async (req: RequestLike, res: ResponseLike) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-      if (req.file.mimetype !== "application/pdf") {
-        return res.status(400).json({ message: "File must be a PDF" });
-      }
-      const parsed = await parseBrokerPdf(req.file.buffer);
-      return res.json(parsed);
+      if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+      if (req.file.mimetype !== "application/pdf") return res.status(400).json({ message: "File must be a PDF" });
+      return res.json(await parseBrokerPdf(req.file.buffer));
     } catch (error: any) {
       console.error("PDF parse error:", error);
       const msg = error?.message || "";
-      if (msg.includes("Invalid PDF") || msg.includes("InvalidPDF") || msg.includes("stream must have data")) {
-        return res.status(400).json({ message: "Invalid PDF file. Please upload a valid broker contract note PDF." });
-      }
+      if (msg.includes("Invalid PDF") || msg.includes("InvalidPDF") || msg.includes("stream must have data")) return res.status(400).json({ message: "Invalid PDF file. Please upload a valid broker contract note PDF." });
       return res.status(400).json({ message: "Failed to parse PDF. Please check the document format." });
     }
   });
