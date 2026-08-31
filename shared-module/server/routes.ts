@@ -45,7 +45,7 @@ type FetchHoldings = (userId: string) => Promise<HoldingsRecord[]>;
 
 function convertHoldingToPortfolio(h: HoldingsRecord) {
   return {
-    id: `holding-${h.id}`,
+    id: h.id,
     userId: String(h.userId),
     asset: h.issuer,
     ticker: null,
