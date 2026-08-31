@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "seed": "tsx ./src/seed.ts",
+    "validate:three-market": "tsx ./src/validate-three-market.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
