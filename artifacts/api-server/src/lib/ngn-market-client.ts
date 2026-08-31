@@ -1,3 +1,10 @@
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+  json(): Promise<unknown>;
+}
+
 const DEFAULT_BASE_URL = "https://api.ngnmarket.com/v1";
 
 export type NgnMarketCompany = {
@@ -41,12 +48,12 @@ async function getJson<T>(path: string): Promise<{ data: T; meta?: Record<string
     },
   });
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new Error(`NGN Market API error ${response.status}: ${body}`);
+  if (!(response as unknown as FetchResponseLike).ok) {
+    const body = await (response as unknown as FetchResponseLike).text().catch(() => "");
+    throw new Error(`NGN Market API error ${(response as unknown as FetchResponseLike).status}: ${body}`);
   }
 
-  const json = await response.json() as NgnMarketEnvelope<T> | T;
+  const json = await (response as unknown as FetchResponseLike).json() as NgnMarketEnvelope<T> | T;
   if (json && typeof json === "object" && "data" in json) {
     const envelope = json as NgnMarketEnvelope<T>;
     if (envelope.data === undefined) throw new Error("NGN Market API returned no data");
