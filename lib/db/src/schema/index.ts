@@ -10,3 +10,4 @@ export * from "./portfolio-holdings";
 export * from "./diaspora-profiles";
 export * from "./simulation";
 export * from "./ngx-market-data";
+export * from "./market-intelligence";
