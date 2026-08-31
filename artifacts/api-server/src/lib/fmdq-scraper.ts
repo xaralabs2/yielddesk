@@ -8,6 +8,12 @@ const FMDQ_URLS = {
   repoApi: "https://fmdqgroup.com/wp-json/fmdq/v1/repo-obb",
 };
 
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+}
+
 interface FmdqRateRecord {
   rateType: string;
   tenor: string;
@@ -25,8 +31,8 @@ async function tryFetchJson(url: string): Promise<any | null> {
       },
       signal: AbortSignal.timeout(15000),
     });
-    if (!response.ok) return null;
-    const text = await response.text();
+    if (!(response as unknown as FetchResponseLike).ok) return null;
+    const text = await (response as unknown as FetchResponseLike).text();
     try {
       return JSON.parse(text);
     } catch {
@@ -50,12 +56,12 @@ async function scrapeFmdqPage(): Promise<FmdqRateRecord[]> {
       signal: AbortSignal.timeout(15000),
     });
 
-    if (!response.ok) {
-      logger.warn({ status: response.status }, "FMDQ page fetch failed");
+    if (!(response as unknown as FetchResponseLike).ok) {
+      logger.warn({ status: (response as unknown as FetchResponseLike).status }, "FMDQ page fetch failed");
       return records;
     }
 
-    const html = await response.text();
+    const html = await (response as unknown as FetchResponseLike).text();
 
     const niborPattern = /NIBOR[^<]*<[^>]*>[\s\S]*?(\d+[\.\d]*)\s*%/gi;
     const obbPattern = /OBB[^<]*<[^>]*>[\s\S]*?(\d+[\.\d]*)\s*%/gi;
