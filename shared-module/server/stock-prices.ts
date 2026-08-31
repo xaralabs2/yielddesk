@@ -1,3 +1,9 @@
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}
+
 interface NgxEquity {
   Symbol: string;
   Name?: string;
@@ -23,12 +29,12 @@ async function fetchAllNgxData(): Promise<void> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch(url, {
+    const response = (await fetch(url, {
       signal: controller.signal,
       headers: {
         "User-Agent": "YieldDesk/1.0 (Nigerian Investment Intelligence Platform)",
       },
-    });
+    })) as unknown as FetchResponseLike;
     clearTimeout(timeout);
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
