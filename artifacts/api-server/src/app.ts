@@ -1,6 +1,6 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
-import pinoHttp from "pino-http";
+import pinoHttpModule from "pino-http";
 import { eq } from "drizzle-orm";
 import router from "./routes";
 import { logger } from "./lib/logger";
@@ -11,24 +11,32 @@ import { db, holdingsTable } from "@workspace/db";
 
 const app: Express = express();
 
+const pinoHttp = pinoHttpModule as unknown as (options: {
+  logger: typeof logger;
+  serializers: {
+    req: (req: { id?: string | number; method?: string; url?: string }) => Record<string, unknown>;
+    res: (res: { statusCode?: number }) => Record<string, unknown>;
+  };
+}) => ReturnType<Express["use"]>;
+
 app.use(
   pinoHttp({
     logger,
     serializers: {
-      req(req) {
+      req(req: { id?: string | number; method?: string; url?: string }) {
         return {
           id: req.id,
           method: req.method,
           url: req.url?.split("?")[0],
         };
       },
-      res(res) {
+      res(res: { statusCode?: number }) {
         return {
           statusCode: res.statusCode,
         };
       },
     },
-  }),
+  }) as any,
 );
 app.use(cors());
 app.use(express.json());
