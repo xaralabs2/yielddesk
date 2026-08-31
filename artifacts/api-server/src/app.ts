@@ -1,4 +1,4 @@
-import express, { type Express, type Request, type Response, type NextFunction } from "express";
+import express, { type Express } from "express";
 import cors from "cors";
 import multer from "multer";
 import pinoHttpModule from "pino-http";
@@ -47,8 +47,8 @@ async function fetchUserHoldings(userId: string) {
 registerInvestmentPortfolioRoutes(
   app,
   portfolioStorage,
-  requireAuth as (req: Request, res: Response, next: NextFunction) => void,
-  (req: Request) => String((req as any).user?.userId ?? "0"),
+  requireAuth as any,
+  ((req: any) => String(req?.user?.userId ?? "0")) as any,
   fetchUserHoldings,
   upload.single("file") as any,
 );
