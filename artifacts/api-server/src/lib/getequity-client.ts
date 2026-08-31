@@ -2,6 +2,13 @@ import { logger } from "./logger";
 
 const GE_BASE_URL = process.env.GETEQUITY_BASE_URL || "https://ge-exchange-staging-1.herokuapp.com/v1";
 
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+  json(): Promise<unknown>;
+}
+
 interface GeTokenPrice {
   buy: number;
   sell: number;
@@ -90,13 +97,13 @@ async function geRequest<T>(path: string): Promise<T | null> {
       signal: AbortSignal.timeout(15000),
     });
 
-    if (!response.ok) {
-      const body = await response.text();
-      logger.warn({ status: response.status, body: body.substring(0, 200) }, "GetEquity API error");
+    if (!(response as unknown as FetchResponseLike).ok) {
+      const body = await (response as unknown as FetchResponseLike).text();
+      logger.warn({ status: (response as unknown as FetchResponseLike).status, body: body.substring(0, 200) }, "GetEquity API error");
       return null;
     }
 
-    return await response.json() as T;
+    return await (response as unknown as FetchResponseLike).json() as T;
   } catch (err) {
     logger.error({ err }, "GetEquity API request failed");
     return null;
