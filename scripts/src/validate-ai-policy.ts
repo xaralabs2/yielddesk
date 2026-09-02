@@ -1,4 +1,10 @@
-import { enforceYieldDeskAiPolicy } from "../../artifacts/api-server/src/lib/ai-policy";
+const policyModule = await import("../../artifacts/api-server/src/lib/ai-policy");
+const policy = (policyModule.default ?? policyModule) as typeof policyModule;
+const enforceYieldDeskAiPolicy = policy.enforceYieldDeskAiPolicy;
+
+if (typeof enforceYieldDeskAiPolicy !== "function") {
+  throw new Error("YieldDesk AI policy function is unavailable");
+}
 
 const blocked = [
   "Buy ACME now.",
