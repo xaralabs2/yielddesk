@@ -64,7 +64,7 @@ export function Sidebar() {
   });
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/investment-desk", label: "Investment Desk", icon: BrainCircuit },
     { href: "/diaspora", label: "Diaspora", icon: Globe2 },
     { href: "/simulator", label: "Simulator", icon: FlaskConical },

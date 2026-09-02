@@ -8,6 +8,7 @@ import { Layout } from "@/components/layout";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import SignupPage from "@/pages/signup";
+import PublicHomePage from "@/pages/public-home";
 import DashboardPage from "@/pages/dashboard";
 import PortfolioPage from "@/pages/portfolio";
 import HoldingsPage from "@/pages/holdings";
@@ -68,7 +69,8 @@ function AppRouter() {
       <Switch>
         <Route path="/login" component={() => <PublicOnlyRoute component={LoginPage} />} />
         <Route path="/signup" component={() => <PublicOnlyRoute component={SignupPage} />} />
-        <Route path="/" component={() => <ProtectedRoute component={DashboardPage} />} />
+        <Route path="/" component={PublicHomePage} />
+        <Route path="/dashboard" component={() => <ProtectedRoute component={DashboardPage} />} />
         <Route path="/investment-desk" component={() => <ProtectedRoute component={InvestmentDeskPage} />} />
         <Route path="/diaspora" component={() => <ProtectedRoute component={DiasporaPage} />} />
         <Route path="/simulator" component={() => <ProtectedRoute component={SimulatorPage} />} />
