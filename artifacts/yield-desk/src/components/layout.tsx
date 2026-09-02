@@ -3,7 +3,6 @@ import { useAuth } from "@/lib/auth";
 import {
   BarChart3,
   Bell,
-  BookOpen,
   BriefcaseBusiness,
   Compass,
   FlaskConical,
@@ -78,12 +77,6 @@ export function Sidebar() {
           icon: Bell,
           badge: alertCount?.unread ? alertCount.unread : undefined,
         },
-      ],
-    },
-    {
-      label: "Learn",
-      items: [
-        { href: "/investment-desk", label: "Investment library", icon: BookOpen },
       ],
     },
   ];
