@@ -37,7 +37,7 @@ jobs:
         run: pnpm exec tsc --build lib/api-client-react
 
       - name: Validate AI policy boundary
-        run: pnpm exec tsx scripts/src/validate-ai-policy.ts
+        run: pnpm --filter @workspace/scripts exec tsx src/validate-ai-policy.ts
 
       - name: Typecheck web
         run: pnpm --filter @workspace/yield-desk run typecheck
