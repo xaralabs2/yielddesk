@@ -86,9 +86,9 @@ export default function PublicHomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link href="/investment-desk">
-                  Explore intelligence <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                <a href="#markets">
+                  Explore the platform <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link href="/login">Sign in to your workspace</Link>
@@ -131,7 +131,7 @@ export default function PublicHomePage() {
           </Card>
         </section>
 
-        <section className="border-y bg-muted/30">
+        <section id="markets" className="border-y bg-muted/30">
           <div className="mx-auto grid max-w-7xl gap-5 px-6 py-14 md:grid-cols-3">
             {capabilities.map((capability) => (
               <Card key={capability.title}>
