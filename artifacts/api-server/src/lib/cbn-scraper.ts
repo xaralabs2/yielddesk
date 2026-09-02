@@ -11,6 +11,12 @@ const ENDPOINTS = {
   EXCHANGE_RATES: `${CBN_BASE}/GetAllExchangeRates`,
 };
 
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}
+
 interface CbnApiRecord {
   id: number;
   auctionDate: string;
@@ -42,21 +48,21 @@ function parseNum(str: string): number | null {
   return isNaN(n) ? null : n;
 }
 
-async function fetchEndpoint(url: string): Promise<CbnApiRecord[]> {
-  const response = await fetch(url, {
+async function fetchEndpoint<T = CbnApiRecord>(url: string): Promise<T[]> {
+  const response = (await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       Accept: "application/json",
       Referer: "https://www.cbn.gov.ng/rates/GovtSecurities.html",
     },
     signal: AbortSignal.timeout(30000),
-  });
+  })) as unknown as FetchResponseLike;
 
   if (!response.ok) {
     throw new Error(`CBN API ${url} failed: ${response.status}`);
   }
 
-  return response.json();
+  return (await response.json()) as T[];
 }
 
 export async function fetchCbnData() {
@@ -270,7 +276,7 @@ interface ExchangeRateRecord {
 }
 
 export async function syncPolicyRates(): Promise<{ recordsInserted: number }> {
-  const raw: MoneyMarketRecord[] = await fetchEndpoint(ENDPOINTS.MONEY_MARKET).catch((e) => {
+  const raw: MoneyMarketRecord[] = await fetchEndpoint<MoneyMarketRecord>(ENDPOINTS.MONEY_MARKET).catch((e) => {
     logger.error({ err: e }, "Failed to fetch money market indicators");
     return [];
   });
@@ -317,7 +323,7 @@ export async function syncPolicyRates(): Promise<{ recordsInserted: number }> {
 const KEY_CURRENCIES = ["US DOLLAR", "POUNDS STERLING", "EURO", "SWISS FRANC", "CHINESE YUAN", "SOUTH AFRICAN RAND"];
 
 export async function syncExchangeRates(): Promise<{ recordsInserted: number }> {
-  const raw: ExchangeRateRecord[] = await fetchEndpoint(ENDPOINTS.EXCHANGE_RATES).catch((e) => {
+  const raw: ExchangeRateRecord[] = await fetchEndpoint<ExchangeRateRecord>(ENDPOINTS.EXCHANGE_RATES).catch((e) => {
     logger.error({ err: e }, "Failed to fetch exchange rates");
     return [];
   });

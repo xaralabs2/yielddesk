@@ -96,7 +96,7 @@ router.get("/investment-desk/recheck", requireAuth, async (req, res): Promise<vo
   const valuationCoverage = positions.filter((p) => p.ticker).filter((p) => p.market?.price != null).length;
   res.json({
     generatedAt: new Date().toISOString(), policy: { ...desk, positions },
-    marketContext: { ntb: latestNtb ? { tenor: latestNtb.tenor, stopRate: latestNtb.stopRate, date: latestNtb.auctionDate } : null, moneyMarket: latestFmdq ? { type: latestFmdq.rateType, tenor: latestFmdq.tenor, rate: latestFmdq.rate, date: latestFmdq.date } : null, equities: equityMarket },
+    marketContext: { ntb: latestNtb ? { tenor: latestNtb.tenor, stopRate: latestNtb.marginalRate, date: latestNtb.auctionDate } : null, moneyMarket: latestFmdq ? { type: latestFmdq.rateType, tenor: latestFmdq.tenor, rate: latestFmdq.rate, date: latestFmdq.date } : null, equities: equityMarket },
     review: { attentionCount: attention.length, valuationCoverage, valuationReady: valuationCoverage === 9 && equityMarket.quotes.some((q: any) => q.pe != null), highestPriority: attention.slice(0, 5).map((p) => ({ key: p.key, name: p.name, ticker: p.ticker, action: p.action, driftAmount: p.driftAmount, driftPct: p.driftPct, market: p.market })), note: valuationCoverage ? "Live NGX quotes are attached. Valuation-aware signals remain gated until fundamentals coverage is present and fresh." : "Allocation actions remain deterministic drift signals until live NGX data is configured." },
   });
 });

@@ -1,8 +1,8 @@
 # YieldDesk
 
-**Capital Allocation & Yield Optimization Platform for Nigerian Investments**
+**Three-Market Investment Intelligence, Simulation & Capital Allocation Platform**
 
-YieldDesk is an AI-native investment intelligence, simulation, portfolio management, and capital-allocation platform focused on Nigerian markets. It combines live market data, deterministic investment mathematics, portfolio intelligence, and Xara AI OS to help investors understand opportunities, practice investment decisions, review real holdings, and make better-informed capital-allocation decisions.
+YieldDesk is an AI-native investment intelligence, simulation, portfolio management, and capital-allocation platform covering the United States, United Kingdom, and Nigeria. It combines live market data, deterministic investment mathematics, portfolio intelligence, and Xara AI OS to help investors understand opportunities, practice investment decisions, review real holdings, and make better-informed capital-allocation decisions.
 
 YieldDesk is **not a stockbroker, custodian, or trade-execution platform**. Real investments are executed outside YieldDesk through the investor's chosen provider and can then be recorded manually or, as supported, imported from investment documents for ongoing review.
 
@@ -13,6 +13,7 @@ YieldDesk documentation intentionally separates current capabilities from future
 - **Available today:** [`docs/YIELDDESK_NOW.md`](docs/YIELDDESK_NOW.md)
 - **Future-state V2:** [`docs/YIELDDESK_FUTURE.md`](docs/YIELDDESK_FUTURE.md)
 - **Investment Mathematics Engine:** [`docs/INVESTMENT_MATHEMATICS_ENGINE.md`](docs/INVESTMENT_MATHEMATICS_ENGINE.md)
+- **Approved three-market Phase 1:** [`docs/THREE_MARKET_PHASE1.md`](docs/THREE_MARKET_PHASE1.md)
 - **Core + expansion roadmap:** [`docs/YIELDDESK_V2_ROADMAP.md`](docs/YIELDDESK_V2_ROADMAP.md)
 
 The target V2 decision language is:
@@ -71,7 +72,7 @@ The diaspora profile captures country/base currency, experience, risk tolerance,
 
 ## Investment Coverage
 
-YieldDesk is designed around Nigerian capital allocation across:
+Phase 1 covers income and wealth-preservation intelligence across USD, GBP, and NGN markets. US and UK instruments begin with public equities, REITs, government securities, and regulated funds. Nigerian coverage includes:
 
 - NGX equities
 - FGN bonds

@@ -32,7 +32,7 @@ router.get("/ngx/companies", requireAuth, async (_req, res): Promise<void> => {
 });
 
 router.get("/ngx/companies/:symbol", requireAuth, async (req, res): Promise<void> => {
-  const symbol = req.params.symbol.toUpperCase().trim();
+  const symbol = String(req.params.symbol).toUpperCase().trim();
 
   const [company] = await db
     .select({
@@ -97,7 +97,7 @@ router.get("/ngx/companies/:symbol", requireAuth, async (req, res): Promise<void
 });
 
 router.get("/ngx/prices/:symbol", requireAuth, async (req, res): Promise<void> => {
-  const symbol = req.params.symbol.toUpperCase().trim();
+  const symbol = String(req.params.symbol).toUpperCase().trim();
   const requestedLimit = Number.parseInt(String(req.query.limit ?? "90"), 10);
   const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 1000) : 90;
 

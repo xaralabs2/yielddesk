@@ -1,3 +1,10 @@
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+  json(): Promise<unknown>;
+}
+
 import { eq } from "drizzle-orm";
 import {
   db,
@@ -52,11 +59,11 @@ async function fetchNgxEquities(): Promise<NgxEquitySnapshot[]> {
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`NGX equities request failed with HTTP ${response.status}`);
+    if (!(response as unknown as FetchResponseLike).ok) {
+      throw new Error(`NGX equities request failed with HTTP ${(response as unknown as FetchResponseLike).status}`);
     }
 
-    const payload = (await response.json()) as unknown;
+    const payload = (await (response as unknown as FetchResponseLike).json()) as unknown;
     if (!Array.isArray(payload)) {
       throw new Error("NGX equities response was not an array");
     }
