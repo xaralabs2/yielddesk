@@ -20,6 +20,7 @@ import MmRatesPage from "@/pages/mm-rates";
 import InvestmentDeskPage from "@/pages/investment-desk";
 import DiasporaPage from "@/pages/diaspora";
 import SimulatorPage from "@/pages/simulator";
+import ComparePage from "@/pages/compare";
 import { ThemeProvider } from "@/lib/theme";
 import { defaultQueryFn } from "@/lib/api-helpers";
 import { setBaseUrl } from "@workspace/api-client-react";
@@ -28,11 +29,7 @@ setBaseUrl(import.meta.env.VITE_API_URL || "https://yielddesk-api.vercel.app");
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-      queryFn: defaultQueryFn as any,
-    },
+    queries: { retry: false, refetchOnWindowFocus: false, queryFn: defaultQueryFn as any },
   },
 });
 
@@ -41,13 +38,10 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      setLocation("/login");
-    }
+    if (!isLoading && !user) setLocation("/login");
   }, [isLoading, user, setLocation]);
 
   if (isLoading || !user) return null;
-
   return <Component />;
 }
 
@@ -56,13 +50,10 @@ function PublicOnlyRoute({ component: Component }: { component: React.ComponentT
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!isLoading && user) {
-      setLocation("/");
-    }
+    if (!isLoading && user) setLocation("/dashboard");
   }, [isLoading, user, setLocation]);
 
   if (isLoading || user) return null;
-
   return <Component />;
 }
 
@@ -74,6 +65,7 @@ function AppRouter() {
         <Route path="/signup" component={() => <PublicOnlyRoute component={SignupPage} />} />
         <Route path="/" component={PublicHomePage} />
         <Route path="/dashboard" component={() => <ProtectedRoute component={DashboardPage} />} />
+        <Route path="/compare" component={() => <ProtectedRoute component={ComparePage} />} />
         <Route path="/investment-desk" component={() => <ProtectedRoute component={InvestmentDeskPage} />} />
         <Route path="/diaspora" component={() => <ProtectedRoute component={DiasporaPage} />} />
         <Route path="/simulator" component={() => <ProtectedRoute component={SimulatorPage} />} />
@@ -90,15 +82,13 @@ function AppRouter() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <AuthProvider>
-              <AppRouter />
-            </AuthProvider>
+            <AuthProvider><AppRouter /></AuthProvider>
           </WouterRouter>
           <Toaster />
         </TooltipProvider>
@@ -106,5 +96,3 @@ function App() {
     </ThemeProvider>
   );
 }
-
-export default App;

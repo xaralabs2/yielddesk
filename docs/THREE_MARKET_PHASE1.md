@@ -2,53 +2,52 @@
 
 ## Approved product boundary
 
-YieldDesk Phase 1 is an investment-intelligence and simulation platform for the
-United States, United Kingdom, and Nigeria. It does not execute trades, hold
-customer funds, or custody securities.
+YieldDesk Phase 1 is a cross-border investment-information, education, comparison, and simulation platform for the United States, United Kingdom, and Nigeria.
+
+YieldDesk does not recommend investments or providers, determine suitability, advise users to buy or sell, arrange or execute trades, transmit orders, hold customer funds, or custody securities.
+
+The canonical product journey is:
+
+**Discover → Understand → Compare → Simulate → Watch → Monitor**
+
+See [PRODUCT_CONSTITUTION.md](PRODUCT_CONSTITUTION.md).
 
 ## Market model
 
 | Market | Currency | Initial instruments |
 | --- | --- | --- |
-| US | USD | Equities, REITs, Treasuries, regulated funds |
-| UK | GBP | Equities, REITs, gilts, regulated funds |
-| Nigeria | NGN | Equities, T-Bills, FGN bonds, regulated funds, selected SPVs |
+| US | USD | Treasuries, selected ETFs, REITs, and dividend-oriented public securities |
+| UK | GBP | Gilts, selected ETFs, REITs, and regulated funds |
+| Nigeria | NGN | Treasury bills, FGN bonds, regulated funds, and selected public-market instruments |
 
-Every instrument retains its native currency. Currency conversion is a derived,
-timestamped observation and never replaces native-currency values.
+Every instrument retains its native currency. Currency conversion is a derived, timestamped observation and never replaces native-currency values.
 
-## Mandatory intelligence output
+## First complete workflow
 
-Every evaluated opportunity must include:
+1. A user chooses an amount and base currency.
+2. The user selects instruments from one or more supported markets.
+3. YieldDesk displays comparable facts: income/yield basis, duration, liquidity, fees, source, and freshness.
+4. The user supplies FX, inflation, horizon, and reinvestment assumptions.
+5. A deterministic engine produces clearly labelled hypothetical scenarios.
+6. The user saves the comparison to a watchlist or virtual portfolio.
+7. YieldDesk monitors the selected instruments and source freshness.
 
-- evidence provenance and freshness;
-- normalized income or earnings;
-- sustainable yield;
-- downside, preferred-entry, fair, and optimistic values;
-- modeled annualized return and required-return comparison;
-- unresolved diligence;
-- a decision of ACCUMULATE, WATCH, AVOID, or INSUFFICIENT_EVIDENCE;
-- human approval required and actionable=false.
+## Mandatory output contract
 
-## Reference case
+Every comparison or simulation must distinguish sourced facts, deterministic calculations, user assumptions, historical observations, hypothetical scenarios, forecasts or third-party estimates, and missing or stale data.
 
-Home Depot is the first deterministic US-equity reference case. The fixture
-uses normalized EPS of $15, a $300 preferred entry, a $330 fair value, and the
-August 28, 2026 market reference of $330.19. The expected engine outcome is
-WATCH because the asset is credible but does not provide the required margin of
-safety at that price.
+Every result must include native currency, base currency, data source, observation time, calculation basis, included/excluded costs, and limitations.
 
-Run:
+YieldDesk presents no decision label such as ACCUMULATE, BUY, SELL, HOLD, AVOID, INVESTABLE, ACTIONABLE, preferred entry, or target allocation.
 
-```bash
-pnpm exec tsx scripts/src/validate-three-market.ts
-```
+## Phase 1 delivery slices
 
-## Next implementation slice
-
-1. Persist instruments and timestamped observations.
-2. Add API contracts for instrument discovery and valuation.
-3. Add US-equity market-data adapter with licensing/provenance controls.
-4. Add simulated multi-currency ledger.
-5. Add UK and Nigerian reference fixtures.
-6. Expose the investment memo in the web application.
+1. Freeze the product constitution and prohibited-capability controls.
+2. Rebuild navigation around the canonical user journey.
+3. Implement structured instrument profiles and provenance.
+4. Implement the three-market comparison workspace.
+5. Implement multi-currency, inflation, fee, and income scenarios.
+6. Add saved comparisons, watchlists, and virtual portfolios.
+7. Add factual monitoring and source-freshness alerts.
+8. Add AI explanation constrained by the product constitution.
+9. Add clearly separated advertising only after audience and advertiser controls exist.
