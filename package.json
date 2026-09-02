@@ -15,5 +15,6 @@
   },
   "dependencies": {
     "@replit/connectors-sdk": "^0.4.0"
-  }
+  },
+  "packageManager": "pnpm@10.28.0"
 }
