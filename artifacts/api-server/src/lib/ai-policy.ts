@@ -1,8 +1,12 @@
 const prohibitedPatterns: Array<{ pattern: RegExp; reason: string }> = [
+  { pattern: /(^|[.!?]\s+)(please\s+)?(buy|sell|hold|avoid|accumulate|invest|allocate|choose|select|use)\b/im, reason: "direct instruction" },
   { pattern: /\b(strong\s+buy|buy|sell|hold|accumulate|avoid)\b\s*[:\-–—]/i, reason: "decision label" },
-  { pattern: /\b(you|investor)\s+(should|must|need(?:s)?\s+to)\s+(buy|sell|hold|invest|allocate|choose|use)\b/i, reason: "personal instruction" },
-  { pattern: /\b(recommended|suitable|best)\s+(for\s+you|investment|broker|provider|allocation)\b/i, reason: "recommendation or suitability claim" },
-  { pattern: /\b(target|recommended)\s+allocation\b/i, reason: "prescribed allocation" },
+  { pattern: /\b(you|investor)\s+(should|must|need(?:s)?\s+to|could)\s+(buy|sell|hold|invest|allocate|choose|select|use)\b/i, reason: "personal instruction" },
+  { pattern: /\bconsider\s+(buying|selling|holding|investing|allocating|choosing|selecting)\b/i, reason: "softened instruction" },
+  { pattern: /\b(i|we)\s+(recommend|suggest|favor|prefer)\b/i, reason: "direct recommendation" },
+  { pattern: /\brecommend(?:ed|ation|ations|ing)?\b/i, reason: "recommendation language" },
+  { pattern: /\b(suitable|best|right|ideal)\s+(for\s+you|choice|option|investment|broker|provider|allocation)\b/i, reason: "recommendation or suitability claim" },
+  { pattern: /\b(target|prescribed)\s+allocation\b/i, reason: "prescribed allocation" },
   { pattern: /\b(preferred|ideal)\s+entry\b/i, reason: "entry instruction" },
 ];
 
