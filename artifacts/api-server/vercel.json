@@ -3,12 +3,7 @@
   "functions": {
     "api/index.ts": {
       "maxDuration": 60,
-      "includeFiles": [
-        "../../lib/api-zod/**",
-        "../../lib/db/**",
-        "../../lib/integrations-openai-ai-server/**",
-        "../../shared-module/**"
-      ]
+      "includeFiles": "{../../lib/api-zod/**,../../lib/db/**,../../lib/integrations-openai-ai-server/**,../../shared-module/**}"
     },
     "api/cron/cbn-sync.ts": {
       "maxDuration": 60
