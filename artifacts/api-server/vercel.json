@@ -2,15 +2,22 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/index.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "{../../lib/api-zod/**,../../lib/db/**,../../lib/integrations-openai-ai-server/**,../../shared-module/**}"
     },
     "api/cron/cbn-sync.ts": {
       "maxDuration": 60
     }
   },
   "rewrites": [
-    { "source": "/api/cron/cbn-sync", "destination": "/api/cron/cbn-sync" },
-    { "source": "/api/:path*", "destination": "/api/index" }
+    {
+      "source": "/api/cron/cbn-sync",
+      "destination": "/api/cron/cbn-sync"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index"
+    }
   ],
   "crons": [
     {
