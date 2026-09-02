@@ -22,6 +22,9 @@ import DiasporaPage from "@/pages/diaspora";
 import SimulatorPage from "@/pages/simulator";
 import { ThemeProvider } from "@/lib/theme";
 import { defaultQueryFn } from "@/lib/api-helpers";
+import { setBaseUrl } from "@workspace/api-client-react";
+
+setBaseUrl(import.meta.env.VITE_API_URL || "https://yielddesk-api.vercel.app");
 
 const queryClient = new QueryClient({
   defaultOptions: {
