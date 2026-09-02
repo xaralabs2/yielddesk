@@ -26,8 +26,6 @@ const instruments: Instrument[] = [
   { id: "ng-tbill-demo", market: "Nigeria", name: "Nigeria T-Bill illustration", type: "Government security", currency: "NGN", annualRate: 18, liquidity: "Term-dependent", source: "Demonstration dataset", observedAt: "Illustrative only" },
 ];
 
-const currencySymbols: Record<Currency, string> = { USD: "$", GBP: "£", NGN: "₦" };
-
 function formatMoney(value: number, currency: Currency) {
   return new Intl.NumberFormat(currency === "NGN" ? "en-NG" : currency === "GBP" ? "en-GB" : "en-US", {
     style: "currency",
@@ -92,13 +90,13 @@ export default function ComparePage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg"><RefreshCw className="h-5 w-5" /> Currency assumptions</CardTitle>
-          <p className="text-sm text-muted-foreground">Enter the base-currency value of one unit of each currency. These values are controlled by you and are not live FX quotes.</p>
+          <p className="text-sm text-muted-foreground">Enter the illustrative USD value of one unit of each currency. YieldDesk uses these common-basis inputs to derive the selected display currency. These are controlled by you and are not live FX quotes.</p>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
           {(["USD", "GBP", "NGN"] as Currency[]).map((currency) => (
             <div key={currency} className="space-y-2">
               <Label htmlFor={`fx-${currency}`}>1 {currency} value</Label>
-              <div className="relative"><span className="absolute left-3 top-2.5 text-sm text-muted-foreground">{currencySymbols[currency]}</span><Input id={`fx-${currency}`} className="pl-8" inputMode="decimal" value={fx[currency]} onChange={(e) => setFx((current) => ({ ...current, [currency]: e.target.value }))} /></div>
+              <div className="relative"><span className="absolute left-3 top-2.5 text-sm text-muted-foreground">$</span><Input id={`fx-${currency}`} className="pl-8" inputMode="decimal" value={fx[currency]} onChange={(e) => setFx((current) => ({ ...current, [currency]: e.target.value }))} /></div>
             </div>
           ))}
         </CardContent>
