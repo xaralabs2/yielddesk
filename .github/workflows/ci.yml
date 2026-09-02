@@ -33,5 +33,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck and build
-        run: pnpm run build
+      - name: Typecheck web
+        run: pnpm --filter @workspace/yield-desk run typecheck
+
+      - name: Build web
+        run: pnpm --filter @workspace/yield-desk run build
+
+      - name: Build API
+        run: pnpm --filter @workspace/api-server run build
