@@ -1,21 +1,19 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import {
-  Briefcase,
-  WalletCards,
-  LineChart,
+  BarChart3,
   Bell,
-  Activity,
-  LogOut,
+  BookOpen,
+  BriefcaseBusiness,
+  Compass,
+  FlaskConical,
+  Globe2,
   LayoutDashboard,
-  Landmark,
-  Sun,
+  LogOut,
   Moon,
   Monitor,
-  Coins,
-  BrainCircuit,
-  Globe2,
-  FlaskConical,
+  Sun,
+  WalletCards,
 } from "lucide-react";
 import { useGetAlertCount, getGetAlertCountQueryKey } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
@@ -30,21 +28,21 @@ function ThemeToggle() {
   ];
 
   return (
-    <div className="flex items-center gap-1 px-1 py-1 rounded-md bg-sidebar-accent/50" data-testid="theme-toggle">
-      {options.map((opt) => (
+    <div className="flex items-center gap-1 rounded-md bg-sidebar-accent/50 px-1 py-1" data-testid="theme-toggle">
+      {options.map((option) => (
         <button
-          key={opt.value}
-          onClick={() => setTheme(opt.value)}
+          key={option.value}
+          onClick={() => setTheme(option.value)}
           className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors flex-1 justify-center",
-            theme === opt.value
+            "flex flex-1 items-center justify-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium transition-colors",
+            theme === option.value
               ? "bg-sidebar-primary text-sidebar-primary-foreground"
               : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
           )}
-          data-testid={`theme-${opt.value}`}
+          data-testid={`theme-${option.value}`}
         >
-          <opt.icon className="w-3 h-3" />
-          {opt.label}
+          <option.icon className="h-3 w-3" />
+          {option.label}
         </button>
       ))}
     </div>
@@ -54,87 +52,88 @@ function ThemeToggle() {
 export function Sidebar() {
   const [location] = useLocation();
   const { logout, user } = useAuth();
-
   const { data: alertCount } = useGetAlertCount({
-    query: {
-      queryKey: getGetAlertCountQueryKey(),
-      enabled: !!user,
-      refetchInterval: 30000
-    }
+    query: { queryKey: getGetAlertCountQueryKey(), enabled: !!user, refetchInterval: 30000 },
   });
 
-  const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/investment-desk", label: "Investment Desk", icon: BrainCircuit },
-    { href: "/diaspora", label: "Diaspora", icon: Globe2 },
-    { href: "/simulator", label: "Simulator", icon: FlaskConical },
-    { href: "/portfolio", label: "Portfolio", icon: Briefcase },
-    { href: "/holdings", label: "Holdings", icon: WalletCards },
-    { href: "/deals", label: "Deals", icon: LineChart },
-    { href: "/market-data", label: "Investments", icon: Landmark },
-    { href: "/mm-rates", label: "Rates", icon: Coins },
-    { href: "/signals", label: "Signals", icon: Activity },
+  const groups = [
     {
-      href: "/alerts",
-      label: "Alerts",
-      icon: Bell,
-      badge: alertCount?.unread ? alertCount.unread : undefined
+      label: "Explore",
+      items: [
+        { href: "/dashboard", label: "My YieldDesk", icon: LayoutDashboard },
+        { href: "/market-data", label: "Discover", icon: Compass },
+        { href: "/compare", label: "Compare markets", icon: BarChart3 },
+        { href: "/diaspora", label: "Cross-border context", icon: Globe2 },
+      ],
+    },
+    {
+      label: "Practice & track",
+      items: [
+        { href: "/simulator", label: "Simulate", icon: FlaskConical },
+        { href: "/portfolio", label: "Virtual portfolios", icon: BriefcaseBusiness },
+        { href: "/holdings", label: "Recorded holdings", icon: WalletCards },
+        {
+          href: "/alerts",
+          label: "Monitor",
+          icon: Bell,
+          badge: alertCount?.unread ? alertCount.unread : undefined,
+        },
+      ],
+    },
+    {
+      label: "Learn",
+      items: [
+        { href: "/investment-desk", label: "Investment library", icon: BookOpen },
+      ],
     },
   ];
 
   return (
-    <div className="w-64 border-r bg-sidebar flex flex-col h-screen shrink-0 text-sidebar-foreground">
-      <div className="h-16 flex items-center px-6 border-b border-sidebar-border shrink-0">
-        <h1 className="font-bold text-xl tracking-tighter text-sidebar-primary">YieldDesk</h1>
+    <aside className="flex h-screen w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
+      <div className="border-b border-sidebar-border px-6 py-5">
+        <Link href="/dashboard" className="text-xl font-bold tracking-tight text-sidebar-primary">YieldDesk</Link>
+        <p className="mt-1 text-[11px] text-sidebar-foreground/50">Understand across markets</p>
       </div>
 
-      <div className="flex-1 py-6 px-3 flex flex-col gap-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const active = location === item.href || (item.href !== "/" && location.startsWith(item.href));
-          return (
-            <Link key={item.href} href={item.href}>
-              <div className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer group",
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-              )}>
-                <item.icon className={cn(
-                  "w-4 h-4",
-                  active ? "text-sidebar-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80"
-                )} />
-                {item.label}
-                {item.badge !== undefined && item.badge > 0 && (
-                  <span className="ml-auto bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+        {groups.map((group) => (
+          <div key={group.label}>
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/40">{group.label}</p>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const active = location === item.href || location.startsWith(`${item.href}/`);
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <div className={cn(
+                      "group flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    )}>
+                      <item.icon className={cn("h-4 w-4", active ? "text-sidebar-primary" : "text-sidebar-foreground/45 group-hover:text-sidebar-foreground/80")} />
+                      {item.label}
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">{item.badge}</span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
 
-      <div className="p-4 border-t border-sidebar-border shrink-0">
+      <div className="border-t border-sidebar-border p-4">
+        <p className="mb-3 px-2 text-[10px] leading-4 text-sidebar-foreground/45">Information, education, comparison and simulation. YieldDesk does not recommend investments or providers.</p>
         <ThemeToggle />
-        <div className="flex items-center gap-3 px-3 py-2 mb-2 mt-2">
-          <div className="w-8 h-8 rounded-full bg-sidebar-primary/20 flex items-center justify-center text-sidebar-primary font-bold text-xs">
-            {user?.email?.charAt(0).toUpperCase() || "U"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate">{user?.email}</div>
-            <div className="text-xs text-sidebar-foreground/50 capitalize">{user?.role}</div>
-          </div>
+        <div className="mb-2 mt-3 flex items-center gap-3 px-3 py-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary/20 text-xs font-bold text-sidebar-primary">{user?.email?.charAt(0).toUpperCase() || "U"}</div>
+          <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium">{user?.email}</div><div className="text-xs capitalize text-sidebar-foreground/50">{user?.role}</div></div>
         </div>
-        <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          Sign out
-        </button>
+        <button onClick={logout} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-destructive/10 hover:text-destructive"><LogOut className="h-4 w-4" />Sign out</button>
       </div>
-    </div>
+    </aside>
   );
 }
 
@@ -142,21 +141,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center bg-background"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" /></div>;
   }
 
   if (!user) return <>{children}</>;
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
-    </div>
-  );
+  return <div className="flex h-screen overflow-hidden bg-background"><Sidebar /><main className="flex-1 overflow-y-auto">{children}</main></div>;
 }
