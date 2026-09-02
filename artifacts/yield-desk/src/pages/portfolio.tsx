@@ -998,7 +998,7 @@ export default function PortfolioPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [editHolding, setEditHolding] = useState<{ id: number; asset: string; ticker: string | null; pillar: string; valueNgn: number; shares: number; annualRentNgn?: number | null; corridor?: string | null; entryDate?: string | null; cumulativeRentNgn?: number | null } | null>(null);
+  const [editHolding, setEditHolding] = useState<{ id: number; asset: string; ticker: string | null; pillar: string; valueNgn: number; shares: number; entryValueNgn?: number | null; annualRentNgn?: number | null; corridor?: string | null; entryDate?: string | null; cumulativeRentNgn?: number | null } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshLabel, setRefreshLabel] = useState("--");
   const { toast } = useToast();
