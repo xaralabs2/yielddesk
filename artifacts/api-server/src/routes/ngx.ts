@@ -13,8 +13,25 @@ import { syncNgxEquitySnapshot } from "../lib/ngx-market-data";
 
 const router: IRouter = Router();
 
-router.get("/ngx/companies", async (_req, res): Promise<void> => {
-  const companies = await db
+let ngxHydrationPromise: Promise<void> | null = null;
+let lastNgxHydrationAttempt = 0;
+const NGX_HYDRATION_COOLDOWN_MS = 15 * 60 * 1000;
+
+async function hydrateNgxIfEmpty(): Promise<void> {
+  if (Date.now() - lastNgxHydrationAttempt < NGX_HYDRATION_COOLDOWN_MS) return;
+  if (!ngxHydrationPromise) {
+    lastNgxHydrationAttempt = Date.now();
+    ngxHydrationPromise = syncNgxEquitySnapshot()
+      .then(() => undefined)
+      .finally(() => {
+        ngxHydrationPromise = null;
+      });
+  }
+  await ngxHydrationPromise;
+}
+
+async function listCompanies() {
+  return db
     .select({
       companyId: ngxCompaniesTable.id,
       name: ngxCompaniesTable.displayName,
@@ -27,8 +44,30 @@ router.get("/ngx/companies", async (_req, res): Promise<void> => {
     .from(ngxSecuritiesTable)
     .innerJoin(ngxCompaniesTable, eq(ngxSecuritiesTable.companyId, ngxCompaniesTable.id))
     .orderBy(ngxSecuritiesTable.symbol);
+}
 
-  res.json({ companies, count: companies.length });
+router.get("/ngx/companies", async (_req, res): Promise<void> => {
+  let companies = await listCompanies();
+  if (companies.length === 0) {
+    try {
+      await hydrateNgxIfEmpty();
+      companies = await listCompanies();
+    } catch (error: any) {
+      res.status(503).json({
+        companies: [],
+        count: 0,
+        sourceStatus: "unavailable",
+        error: error?.message ?? "NGX source unavailable",
+      });
+      return;
+    }
+  }
+
+  res.json({
+    companies,
+    count: companies.length,
+    sourceStatus: companies.length > 0 ? "available" : "empty",
+  });
 });
 
 router.get("/ngx/companies/:symbol", async (req, res): Promise<void> => {
