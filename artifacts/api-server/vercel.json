@@ -4,6 +4,12 @@
     "api/cron/cbn-sync.ts": {
       "maxDuration": 60
     },
+    "api/cron/fmdq-sync.ts": {
+      "maxDuration": 60
+    },
+    "api/cron/ngx-sync.ts": {
+      "maxDuration": 60
+    },
     "api/index.mjs": {
       "maxDuration": 60
     }
@@ -14,6 +20,14 @@
       "destination": "/api/cron/cbn-sync"
     },
     {
+      "source": "/api/cron/fmdq-sync",
+      "destination": "/api/cron/fmdq-sync"
+    },
+    {
+      "source": "/api/cron/ngx-sync",
+      "destination": "/api/cron/ngx-sync"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/index"
     }
@@ -21,7 +35,15 @@
   "crons": [
     {
       "path": "/api/cron/cbn-sync",
-      "schedule": "0 6 * * *"
+      "schedule": "5 * * * *"
+    },
+    {
+      "path": "/api/cron/fmdq-sync",
+      "schedule": "15 7-17 * * 1-5"
+    },
+    {
+      "path": "/api/cron/ngx-sync",
+      "schedule": "*/30 8-15 * * 1-5"
     }
   ]
 }
