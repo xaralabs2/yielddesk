@@ -13,7 +13,7 @@ import { syncNgxEquitySnapshot } from "../lib/ngx-market-data";
 
 const router: IRouter = Router();
 
-router.get("/ngx/companies", requireAuth, async (_req, res): Promise<void> => {
+router.get("/ngx/companies", async (_req, res): Promise<void> => {
   const companies = await db
     .select({
       companyId: ngxCompaniesTable.id,
@@ -31,7 +31,7 @@ router.get("/ngx/companies", requireAuth, async (_req, res): Promise<void> => {
   res.json({ companies, count: companies.length });
 });
 
-router.get("/ngx/companies/:symbol", requireAuth, async (req, res): Promise<void> => {
+router.get("/ngx/companies/:symbol", async (req, res): Promise<void> => {
   const symbol = String(req.params.symbol).toUpperCase().trim();
 
   const [company] = await db
@@ -96,7 +96,7 @@ router.get("/ngx/companies/:symbol", requireAuth, async (req, res): Promise<void
   res.json({ company, latestPrice: latestPrice ?? null, metrics });
 });
 
-router.get("/ngx/prices/:symbol", requireAuth, async (req, res): Promise<void> => {
+router.get("/ngx/prices/:symbol", async (req, res): Promise<void> => {
   const symbol = String(req.params.symbol).toUpperCase().trim();
   const requestedLimit = Number.parseInt(String(req.query.limit ?? "90"), 10);
   const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 1000) : 90;
