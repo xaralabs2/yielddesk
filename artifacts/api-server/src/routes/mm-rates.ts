@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { desc, eq, and, gte } from "drizzle-orm";
 import { db, mmRatesTable, cbnMarketDataTable } from "@workspace/db";
-import { requireAuth } from "../middlewares/auth";
+import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { syncFmdqRates } from "../lib/fmdq-scraper";
 import { fetchGeCpTokens, fetchAllDeals, isGetEquityConfigured } from "../lib/getequity-client";
 
@@ -88,7 +88,7 @@ router.get("/mm/summary", async (_req, res): Promise<void> => {
     .from(cbnMarketDataTable)
     .where(eq(cbnMarketDataTable.securityType, "NTB"))
     .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(3);
+    .limit(30);
 
   const ntb91 = latestNtb91.find((r) => r.tenor?.includes("91"));
   const ntb182 = latestNtb91.find((r) => r.tenor?.includes("182"));
@@ -114,7 +114,7 @@ router.get("/mm/summary", async (_req, res): Promise<void> => {
   });
 });
 
-router.post("/mm/rates", requireAuth, async (req, res): Promise<void> => {
+router.post("/mm/rates", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const { rateType, tenor, rate, date, notes } = req.body;
 
   if (!rateType || !tenor || rate == null || !date) {
@@ -140,7 +140,7 @@ router.post("/mm/rates", requireAuth, async (req, res): Promise<void> => {
   res.status(201).json(inserted);
 });
 
-router.delete("/mm/rates/:id", requireAuth, async (req, res): Promise<void> => {
+router.delete("/mm/rates/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid ID" });
@@ -161,7 +161,7 @@ router.delete("/mm/rates/:id", requireAuth, async (req, res): Promise<void> => {
   res.status(204).send();
 });
 
-router.post("/mm/sync-fmdq", requireAuth, async (_req, res): Promise<void> => {
+router.post("/mm/sync-fmdq", requireAuth, requireAdmin, async (_req, res): Promise<void> => {
   try {
     const result = await syncFmdqRates();
     res.json({ success: true, ...result });

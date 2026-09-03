@@ -34,6 +34,23 @@ type ExchangeRate = {
 };
 type ExchangeRatesResponse = { latest: ExchangeRate[] };
 type CompaniesResponse = { count: number };
+type FixedIncomeObservation = {
+  securityType: string;
+  tenor: string;
+  auctionDate: string | null;
+  maturityDate: string | null;
+  marginalRate: number | null;
+  trueYield: number | null;
+  subscriptionCoverage: number | null;
+  observedAt: string;
+  freshness: { status: "current" | "aging" | "stale" | "unknown"; ageDays: number | null };
+  source: string;
+};
+type FixedIncomeSnapshot = {
+  generatedAt: string;
+  provenance: { publisher: string; sourceUrl: string; methodology: string };
+  groups: { ntb: FixedIncomeObservation[]; bonds: FixedIncomeObservation[]; omo: FixedIncomeObservation[] };
+};
 
 const nigeriaUniverse = [
   {
@@ -109,11 +126,17 @@ export default function NigeriaPage() {
   const policy = useQuery<PolicyRate[]>({ queryKey: ["/api/cbn/policy-rates"] });
   const fx = useQuery<ExchangeRatesResponse>({ queryKey: ["/api/cbn/exchange-rates"] });
   const companies = useQuery<CompaniesResponse>({ queryKey: ["/api/ngx/companies"] });
+  const fixedIncome = useQuery<FixedIncomeSnapshot>({ queryKey: ["/api/cbn/fixed-income-snapshot"] });
 
   const latestPolicy = policy.data?.[0];
   const usd = fx.data?.latest.find((item) => item.currency.toUpperCase().includes("USD"));
   const isLoading = moneyMarket.isLoading || policy.isLoading || fx.isLoading || companies.isLoading;
   const hasError = moneyMarket.isError || policy.isError || fx.isError || companies.isError;
+  const fixedIncomeRows = [
+    ...(fixedIncome.data?.groups.ntb ?? []),
+    ...(fixedIncome.data?.groups.bonds ?? []),
+    ...(fixedIncome.data?.groups.omo ?? []),
+  ];
 
   return (
     <PublicShell>
@@ -177,6 +200,67 @@ export default function NigeriaPage() {
               One or more source categories could not be loaded. YieldDesk has left the affected observations blank rather than presenting fallback values as current data.
             </p>
           ) : null}
+        </div>
+
+        <div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Sovereign fixed-income observations</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                The latest stored CBN observation for each instrument and tenor. Coverage is calculated from subscription divided by amount offered; it is not a forecast.
+              </p>
+            </div>
+            {fixedIncome.data ? (
+              <a className="text-sm font-medium text-primary underline-offset-4 hover:underline" href={fixedIncome.data.provenance.sourceUrl} target="_blank" rel="noreferrer">
+                {fixedIncome.data.provenance.publisher}
+              </a>
+            ) : null}
+          </div>
+          <Card className="mt-6 overflow-hidden">
+            <CardContent className="p-0">
+              {fixedIncome.isLoading ? (
+                <div className="p-6"><Skeleton className="h-40 w-full" /></div>
+              ) : fixedIncome.isError ? (
+                <p className="p-6 text-sm text-muted-foreground">Fixed-income observations are temporarily unavailable. No estimates have been substituted.</p>
+              ) : fixedIncomeRows.length === 0 ? (
+                <p className="p-6 text-sm text-muted-foreground">No stored CBN fixed-income observations are currently available.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="border-b bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                      <tr>
+                        <th className="px-4 py-3">Instrument</th>
+                        <th className="px-4 py-3">Tenor</th>
+                        <th className="px-4 py-3">Marginal rate</th>
+                        <th className="px-4 py-3">True yield</th>
+                        <th className="px-4 py-3">Subscription</th>
+                        <th className="px-4 py-3">Observed</th>
+                        <th className="px-4 py-3">Freshness</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fixedIncomeRows.slice(0, 18).map((item) => (
+                        <tr className="border-b last:border-0" key={`${item.securityType}-${item.tenor}`}>
+                          <td className="px-4 py-3 font-medium">{item.securityType}</td>
+                          <td className="px-4 py-3">{item.tenor}</td>
+                          <td className="px-4 py-3 tabular-nums">{number(item.marginalRate, "%")}</td>
+                          <td className="px-4 py-3 tabular-nums">{number(item.trueYield, "%")}</td>
+                          <td className="px-4 py-3 tabular-nums">{item.subscriptionCoverage == null ? "—" : `${item.subscriptionCoverage.toFixed(2)}x`}</td>
+                          <td className="px-4 py-3">{date(item.auctionDate ?? item.observedAt)}</td>
+                          <td className="px-4 py-3">
+                            <Badge variant={item.freshness.status === "stale" ? "destructive" : "secondary"}>
+                              {item.freshness.status}{item.freshness.ageDays == null ? "" : ` · ${item.freshness.ageDays}d`}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          {fixedIncome.data ? <p className="mt-3 text-xs text-muted-foreground">{fixedIncome.data.provenance.methodology}</p> : null}
         </div>
 
         <div>
