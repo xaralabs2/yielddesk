@@ -3,8 +3,9 @@ import pg from "pg";
 import * as schema from "./schema";
 
 const { Pool } = pg;
+const databaseUrl = process.env.DATABASE_URL;
 
-if (!process.env.DATABASE_URL) {
+if (!databaseUrl) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
@@ -13,10 +14,10 @@ if (!process.env.DATABASE_URL) {
 function databasePoolConfig(): pg.PoolConfig {
   const encodedCa = process.env.DATABASE_CA_CERT_BASE64;
   if (!encodedCa) {
-    return { connectionString: process.env.DATABASE_URL };
+    return { connectionString: databaseUrl };
   }
 
-  const connectionUrl = new URL(process.env.DATABASE_URL);
+  const connectionUrl = new URL(databaseUrl);
   connectionUrl.searchParams.delete("sslmode");
 
   return {
