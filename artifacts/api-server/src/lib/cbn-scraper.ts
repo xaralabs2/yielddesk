@@ -35,11 +35,22 @@ interface CbnApiRecord {
 
 function parseCbnDate(dateStr: string): Date | null {
   if (!dateStr) return null;
-  const parts = dateStr.trim().split("/");
+  const value = dateStr.trim();
+
+  const direct = new Date(value);
+  if (!Number.isNaN(direct.getTime()) && !/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)) {
+    return direct;
+  }
+
+  const parts = value.split("/");
   if (parts.length !== 3) return null;
-  const [month, day, year] = parts;
-  const d = new Date(`${year}-${month}-${day}T00:00:00Z`);
-  return isNaN(d.getTime()) ? null : d;
+  const [first, second, year] = parts.map(Number);
+  if (!first || !second || !year) return null;
+
+  const month = first > 12 ? second : first;
+  const day = first > 12 ? first : second;
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function parseNum(str: string): number | null {
@@ -329,9 +340,20 @@ export async function syncExchangeRates(): Promise<{ recordsInserted: number }> 
   });
 
   let recordsInserted = 0;
-  const filtered = raw.filter((r) => KEY_CURRENCIES.includes(r.currency));
+  const latestByCurrency = new Map<string, ExchangeRateRecord>();
+  const filtered = raw
+    .filter((record) => KEY_CURRENCIES.includes(record.currency))
+    .sort((left, right) => {
+      const leftDate = new Date(left.ratedate).getTime();
+      const rightDate = new Date(right.ratedate).getTime();
+      return (Number.isNaN(rightDate) ? 0 : rightDate) - (Number.isNaN(leftDate) ? 0 : leftDate);
+    });
 
-  for (const rec of filtered) {
+  for (const record of filtered) {
+    if (!latestByCurrency.has(record.currency)) latestByCurrency.set(record.currency, record);
+  }
+
+  for (const rec of latestByCurrency.values()) {
     const rateDate = new Date(rec.ratedate);
     if (isNaN(rateDate.getTime())) continue;
 
