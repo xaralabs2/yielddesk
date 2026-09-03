@@ -6,23 +6,23 @@ import { syncCbnData, syncPolicyRates, syncExchangeRates } from "../lib/cbn-scra
 
 const router: IRouter = Router();
 
-let hydrationPromise: Promise<void> | null = null;
-let lastHydrationAttempt = 0;
+const hydrationTasks = new Map<string, Promise<void>>();
+const hydrationAttempts = new Map<string, number>();
 const HYDRATION_COOLDOWN_MS = 15 * 60 * 1000;
 
-async function hydrateCbnDataIfEmpty(): Promise<void> {
-  if (Date.now() - lastHydrationAttempt < HYDRATION_COOLDOWN_MS) return;
-  if (!hydrationPromise) {
-    lastHydrationAttempt = Date.now();
-    hydrationPromise = Promise.all([
-      syncCbnData(),
-      syncPolicyRates(),
-      syncExchangeRates(),
-    ]).then(() => undefined).finally(() => {
-      hydrationPromise = null;
+async function hydrateIfEmpty(key: string, sync: () => Promise<unknown>): Promise<void> {
+  const lastAttempt = hydrationAttempts.get(key) ?? 0;
+  if (Date.now() - lastAttempt < HYDRATION_COOLDOWN_MS) return;
+
+  let task = hydrationTasks.get(key);
+  if (!task) {
+    hydrationAttempts.set(key, Date.now());
+    task = sync().then(() => undefined).finally(() => {
+      hydrationTasks.delete(key);
     });
+    hydrationTasks.set(key, task);
   }
-  await hydrationPromise;
+  await task;
 }
 
 function freshness(observedAt: Date | null) {
@@ -39,7 +39,7 @@ router.get("/cbn/market-data", async (_req, res): Promise<void> => {
     db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "OMO")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
   ]);
   if (ntb.length === 0 && bonds.length === 0 && omo.length === 0) {
-    await hydrateCbnDataIfEmpty();
+    await hydrateIfEmpty("market", syncCbnData);
     [ntb, bonds, omo] = await Promise.all([
       db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "NTB")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
       db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "BOND")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
@@ -57,7 +57,7 @@ router.get("/cbn/fixed-income-snapshot", async (_req, res): Promise<void> => {
     .limit(90);
 
   if (rows.length === 0) {
-    await hydrateCbnDataIfEmpty();
+    await hydrateIfEmpty("market", syncCbnData);
     rows = await db
       .select()
       .from(cbnMarketDataTable)
@@ -157,7 +157,7 @@ router.post("/cbn/sync", requireAuth, requireAdmin, async (_req, res): Promise<v
 router.get("/cbn/policy-rates", async (_req, res): Promise<void> => {
   let rates = await db.select().from(cbnPolicyRatesTable).orderBy(desc(cbnPolicyRatesTable.year), desc(cbnPolicyRatesTable.month)).limit(24);
   if (rates.length === 0) {
-    await hydrateCbnDataIfEmpty();
+    await hydrateIfEmpty("policy", syncPolicyRates);
     rates = await db.select().from(cbnPolicyRatesTable).orderBy(desc(cbnPolicyRatesTable.year), desc(cbnPolicyRatesTable.month)).limit(24);
   }
   res.json(rates);
@@ -166,7 +166,7 @@ router.get("/cbn/policy-rates", async (_req, res): Promise<void> => {
 router.get("/cbn/exchange-rates", async (_req, res): Promise<void> => {
   let rates = await db.select().from(cbnExchangeRatesTable).orderBy(desc(cbnExchangeRatesTable.rateDate)).limit(50);
   if (rates.length === 0) {
-    await hydrateCbnDataIfEmpty();
+    await hydrateIfEmpty("fx", syncExchangeRates);
     rates = await db.select().from(cbnExchangeRatesTable).orderBy(desc(cbnExchangeRatesTable.rateDate)).limit(50);
   }
   const grouped: Record<string, typeof rates> = {};
