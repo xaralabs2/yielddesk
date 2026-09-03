@@ -7,7 +7,7 @@ import { fetchGeCpTokens, fetchAllDeals, isGetEquityConfigured } from "../lib/ge
 
 const router: IRouter = Router();
 
-router.get("/mm/rates", requireAuth, async (_req, res): Promise<void> => {
+router.get("/mm/rates", async (_req, res): Promise<void> => {
   const fmdqRates = await db
     .select()
     .from(mmRatesTable)
@@ -54,7 +54,7 @@ router.get("/mm/rates", requireAuth, async (_req, res): Promise<void> => {
   });
 });
 
-router.get("/mm/summary", requireAuth, async (_req, res): Promise<void> => {
+router.get("/mm/summary", async (_req, res): Promise<void> => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
