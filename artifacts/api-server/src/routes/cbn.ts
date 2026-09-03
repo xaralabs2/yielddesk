@@ -73,20 +73,25 @@ router.get("/cbn/fixed-income-snapshot", async (_req, res): Promise<void> => {
 
   const instruments = [...latestByInstrument.values()].map((row) => {
     const observedAt = row.auctionDate ?? row.fetchedAt;
+    const rawSubscriptionCoverage =
+      row.amountOffered && row.totalSubscription != null
+        ? row.totalSubscription / row.amountOffered
+        : null;
+    const subscriptionCoverage =
+      rawSubscriptionCoverage != null && rawSubscriptionCoverage > 0 && rawSubscriptionCoverage <= 100
+        ? rawSubscriptionCoverage
+        : null;
     return {
       securityType: row.securityType,
       tenor: row.tenor,
       auctionDate: row.auctionDate?.toISOString() ?? null,
       maturityDate: row.maturityDate?.toISOString() ?? null,
       marginalRate: row.marginalRate,
-      trueYield: row.trueYield,
+      trueYield: row.trueYield != null && row.trueYield > 0 ? row.trueYield : null,
       amountOffered: row.amountOffered,
       totalSubscription: row.totalSubscription,
       totalSuccessful: row.totalSuccessful,
-      subscriptionCoverage:
-        row.amountOffered && row.totalSubscription != null
-          ? row.totalSubscription / row.amountOffered
-          : null,
+      subscriptionCoverage,
       successfulCoverage:
         row.amountOffered && row.totalSuccessful != null
           ? row.totalSuccessful / row.amountOffered

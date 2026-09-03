@@ -129,7 +129,10 @@ export default function NigeriaPage() {
   const fixedIncome = useQuery<FixedIncomeSnapshot>({ queryKey: ["/api/cbn/fixed-income-snapshot"] });
 
   const latestPolicy = policy.data?.[0];
-  const usd = fx.data?.latest.find((item) => item.currency.toUpperCase().includes("USD"));
+  const usd = fx.data?.latest.find((item) => {
+    const currency = item.currency.toUpperCase();
+    return currency.includes("USD") || currency.includes("US DOLLAR");
+  });
   const isLoading = moneyMarket.isLoading || policy.isLoading || fx.isLoading || companies.isLoading;
   const hasError = moneyMarket.isError || policy.isError || fx.isError || companies.isError;
   const fixedIncomeRows = [
@@ -137,6 +140,7 @@ export default function NigeriaPage() {
     ...(fixedIncome.data?.groups.bonds ?? []),
     ...(fixedIncome.data?.groups.omo ?? []),
   ];
+  const latestNtb364 = fixedIncome.data?.groups.ntb.find((item) => item.tenor.includes("364"));
 
   return (
     <PublicShell>
@@ -174,8 +178,8 @@ export default function NigeriaPage() {
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <SnapshotCard
                 label="364-day NTB proxy"
-                value={number(moneyMarket.data?.proxy.ntb364?.rate, "%")}
-                observed={date(moneyMarket.data?.proxy.ntb364?.date)}
+                value={number(moneyMarket.data?.proxy.ntb364?.rate ?? latestNtb364?.marginalRate, "%")}
+                observed={date(moneyMarket.data?.proxy.ntb364?.date ?? latestNtb364?.auctionDate ?? latestNtb364?.observedAt)}
               />
               <SnapshotCard
                 label="Monetary Policy Rate"
