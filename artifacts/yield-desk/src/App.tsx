@@ -20,6 +20,7 @@ import DiasporaPage from "@/pages/diaspora";
 import SimulatorPage from "@/pages/simulator";
 import ComparePage from "@/pages/compare";
 import PublicMarketsPage from "@/pages/public-markets";
+import NigeriaPage from "@/pages/nigeria";
 import PublicRatesPage from "@/pages/public-rates";
 import PublicResearchPage from "@/pages/public-research";
 import GuestSimulatorPage from "@/pages/guest-simulator";
@@ -75,6 +76,7 @@ function AppRouter() {
         <Route path="/compare" component={() => <ProtectedRoute component={ComparePage} />} />
         <Route path="/investment-desk" component={() => <ProtectedRoute component={InvestmentDeskPage} />} />
         <Route path="/diaspora" component={() => <ProtectedRoute component={DiasporaPage} />} />
+        <Route path="/nigeria" component={NigeriaPage} />
         <Route path="/markets" component={PublicMarketsPage} />
         <Route path="/rates" component={PublicRatesPage} />
         <Route path="/research" component={PublicResearchPage} />
