@@ -6,6 +6,25 @@ import { syncCbnData, syncPolicyRates, syncExchangeRates } from "../lib/cbn-scra
 
 const router: IRouter = Router();
 
+let hydrationPromise: Promise<void> | null = null;
+let lastHydrationAttempt = 0;
+const HYDRATION_COOLDOWN_MS = 15 * 60 * 1000;
+
+async function hydrateCbnDataIfEmpty(): Promise<void> {
+  if (Date.now() - lastHydrationAttempt < HYDRATION_COOLDOWN_MS) return;
+  if (!hydrationPromise) {
+    lastHydrationAttempt = Date.now();
+    hydrationPromise = Promise.all([
+      syncCbnData(),
+      syncPolicyRates(),
+      syncExchangeRates(),
+    ]).then(() => undefined).finally(() => {
+      hydrationPromise = null;
+    });
+  }
+  await hydrationPromise;
+}
+
 function freshness(observedAt: Date | null) {
   if (!observedAt) return { status: "unknown" as const, ageDays: null };
   const ageDays = Math.max(0, Math.floor((Date.now() - observedAt.getTime()) / 86_400_000));
@@ -14,20 +33,37 @@ function freshness(observedAt: Date | null) {
 }
 
 router.get("/cbn/market-data", async (_req, res): Promise<void> => {
-  const [ntb, bonds, omo] = await Promise.all([
+  let [ntb, bonds, omo] = await Promise.all([
     db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "NTB")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
     db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "BOND")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
     db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "OMO")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
   ]);
+  if (ntb.length === 0 && bonds.length === 0 && omo.length === 0) {
+    await hydrateCbnDataIfEmpty();
+    [ntb, bonds, omo] = await Promise.all([
+      db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "NTB")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
+      db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "BOND")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
+      db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "OMO")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
+    ]);
+  }
   res.json({ ntb, bonds, omo });
 });
 
 router.get("/cbn/fixed-income-snapshot", async (_req, res): Promise<void> => {
-  const rows = await db
+  let rows = await db
     .select()
     .from(cbnMarketDataTable)
     .orderBy(desc(cbnMarketDataTable.auctionDate), desc(cbnMarketDataTable.fetchedAt))
     .limit(90);
+
+  if (rows.length === 0) {
+    await hydrateCbnDataIfEmpty();
+    rows = await db
+      .select()
+      .from(cbnMarketDataTable)
+      .orderBy(desc(cbnMarketDataTable.auctionDate), desc(cbnMarketDataTable.fetchedAt))
+      .limit(90);
+  }
 
   const latestByInstrument = new Map<string, typeof rows[number]>();
   for (const row of rows) {
@@ -119,12 +155,20 @@ router.post("/cbn/sync", requireAuth, requireAdmin, async (_req, res): Promise<v
 });
 
 router.get("/cbn/policy-rates", async (_req, res): Promise<void> => {
-  const rates = await db.select().from(cbnPolicyRatesTable).orderBy(desc(cbnPolicyRatesTable.year), desc(cbnPolicyRatesTable.month)).limit(24);
+  let rates = await db.select().from(cbnPolicyRatesTable).orderBy(desc(cbnPolicyRatesTable.year), desc(cbnPolicyRatesTable.month)).limit(24);
+  if (rates.length === 0) {
+    await hydrateCbnDataIfEmpty();
+    rates = await db.select().from(cbnPolicyRatesTable).orderBy(desc(cbnPolicyRatesTable.year), desc(cbnPolicyRatesTable.month)).limit(24);
+  }
   res.json(rates);
 });
 
 router.get("/cbn/exchange-rates", async (_req, res): Promise<void> => {
-  const rates = await db.select().from(cbnExchangeRatesTable).orderBy(desc(cbnExchangeRatesTable.rateDate)).limit(50);
+  let rates = await db.select().from(cbnExchangeRatesTable).orderBy(desc(cbnExchangeRatesTable.rateDate)).limit(50);
+  if (rates.length === 0) {
+    await hydrateCbnDataIfEmpty();
+    rates = await db.select().from(cbnExchangeRatesTable).orderBy(desc(cbnExchangeRatesTable.rateDate)).limit(50);
+  }
   const grouped: Record<string, typeof rates> = {};
   for (const row of rates) {
     if (!grouped[row.currency]) grouped[row.currency] = [];
