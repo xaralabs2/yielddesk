@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { User, useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -26,17 +28,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       enabled: !!token,
       retry: false,
       queryKey: getGetMeQueryKey(),
-    }
+    },
   });
 
   useEffect(() => {
     if (isError) {
-      setToken(null);
       localStorage.removeItem("token");
+      setToken(null);
+      queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
     }
-  }, [isError]);
+  }, [isError, queryClient]);
 
   const login = (newToken: string) => {
+    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
     localStorage.setItem("token", newToken);
     setToken(newToken);
   };
@@ -44,11 +48,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
-    setLocation("/login");
+    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+    setLocation("/");
   };
 
   return (
-    <AuthContext.Provider value={{ user: user || null, isLoading: isLoading && !!token, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user: token ? user || null : null,
+        isLoading: isLoading && !!token,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
