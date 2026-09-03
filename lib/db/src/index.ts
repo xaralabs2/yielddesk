@@ -10,7 +10,25 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+function databasePoolConfig(): pg.PoolConfig {
+  const encodedCa = process.env.DATABASE_CA_CERT_BASE64;
+  if (!encodedCa) {
+    return { connectionString: process.env.DATABASE_URL };
+  }
+
+  const connectionUrl = new URL(process.env.DATABASE_URL);
+  connectionUrl.searchParams.delete("sslmode");
+
+  return {
+    connectionString: connectionUrl.toString(),
+    ssl: {
+      ca: Buffer.from(encodedCa, "base64").toString("utf8"),
+      rejectUnauthorized: true,
+    },
+  };
+}
+
+export const pool = new Pool(databasePoolConfig());
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";
