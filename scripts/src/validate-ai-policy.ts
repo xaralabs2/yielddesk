@@ -1,6 +1,4 @@
-const policyModule = await import("../../artifacts/api-server/src/lib/ai-policy");
-const policy = (policyModule.default ?? policyModule) as typeof policyModule;
-const enforceYieldDeskAiPolicy = policy.enforceYieldDeskAiPolicy;
+import { enforceYieldDeskAiPolicy } from "../../artifacts/api-server/src/lib/ai-policy";
 
 if (typeof enforceYieldDeskAiPolicy !== "function") {
   throw new Error("YieldDesk AI policy function is unavailable");

@@ -1,0 +1,1 @@
+- [Replit pnpm publish bootstrap](replit-pnpm-publish-bootstrap.md) — avoid exact root packageManager pins that make artifact publishing recursively install pnpm.
