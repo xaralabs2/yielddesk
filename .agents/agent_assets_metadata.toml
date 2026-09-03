@@ -6,3 +6,18 @@ id = "xElMMzRdmFpNTU2EGU7rP"
 uri = "file://docs/AUDIT_FINDINGS_REPORT.md"
 type = "text"
 title = "YieldDesk Project Audit Findings Report"
+logical_id = "4637d3ea-b0b2-4d8e-9fa4-07a6eded4f34"
+
+[[outputs]]
+id = "dWjpVIqq3Eseglhoex8dr"
+uri = "file://docs/YIELDDESK_PLATFORM_REPLICATION_GUIDE.md"
+type = "text"
+title = "YieldDesk Platform Replication Guide"
+description = "A complete 7,900-word technical audit covering the stack, architecture, runtime APIs, external links, environment variables, schemas, financial logic, workflows, risks, and an AI-ready reconstruction sequence."
+logical_id = "b208a218-6684-4a88-9fd0-c9af19b6203c"
+content_hash = "sha256:a55a843757a5eda394e14729fc238354e11e9a34a7d7a000b79f3105a0813c1f"
+size = 62844
+mtime_ms = 1788436512639
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:38e1cd1f-2e5e-400b-ad8d-4249a95dabc6/b208a218-6684-4a88-9fd0-c9af19b6203c/ee6f07b7-8064-4290-a7a0-74df70ed7dcc"
+storage_version_token = "1788436533349917"
+content_type = "text/markdown"
