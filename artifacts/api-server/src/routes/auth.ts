@@ -14,11 +14,12 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
     return;
   }
 
-  const { email, password, role } = parsed.data;
+  const email = parsed.data.email.trim().toLowerCase();
+  const { password } = parsed.data;
 
   const existing = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (existing.length > 0) {
-    res.status(400).json({ error: "Email already registered" });
+    res.status(409).json({ error: "Email already registered" });
     return;
   }
 
@@ -26,7 +27,7 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
   const [user] = await db.insert(usersTable).values({
     email,
     passwordHash,
-    role: role || "user",
+    role: "user",
   }).returning();
 
   const token = signToken({ userId: user.id, email: user.email, role: user.role });
@@ -49,7 +50,8 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  const { email, password } = parsed.data;
+  const email = parsed.data.email.trim().toLowerCase();
+  const { password } = parsed.data;
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (!user) {
