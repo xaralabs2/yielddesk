@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const links = [
+  { href: "/nigeria", label: "Nigeria" },
   { href: "/markets", label: "Markets" },
   { href: "/rates", label: "Rates" },
   { href: "/research", label: "Research" },
