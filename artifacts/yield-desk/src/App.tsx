@@ -15,12 +15,14 @@ import HoldingsPage from "@/pages/holdings";
 import DealsPage from "@/pages/deals";
 import AlertsPage from "@/pages/alerts";
 import SignalsPage from "@/pages/signals";
-import MarketDataPage from "@/pages/market-data";
-import MmRatesPage from "@/pages/mm-rates";
 import InvestmentDeskPage from "@/pages/investment-desk";
 import DiasporaPage from "@/pages/diaspora";
 import SimulatorPage from "@/pages/simulator";
 import ComparePage from "@/pages/compare";
+import PublicMarketsPage from "@/pages/public-markets";
+import PublicRatesPage from "@/pages/public-rates";
+import PublicResearchPage from "@/pages/public-research";
+import GuestSimulatorPage from "@/pages/guest-simulator";
 import { ThemeProvider } from "@/lib/theme";
 import { defaultQueryFn } from "@/lib/api-helpers";
 import { setBaseUrl } from "@workspace/api-client-react";
@@ -57,6 +59,11 @@ function PublicOnlyRoute({ component: Component }: { component: React.ComponentT
   return <Component />;
 }
 
+function SimulatorRoute() {
+  const { user } = useAuth();
+  return user ? <SimulatorPage /> : <GuestSimulatorPage />;
+}
+
 function AppRouter() {
   return (
     <Layout>
@@ -68,14 +75,17 @@ function AppRouter() {
         <Route path="/compare" component={() => <ProtectedRoute component={ComparePage} />} />
         <Route path="/investment-desk" component={() => <ProtectedRoute component={InvestmentDeskPage} />} />
         <Route path="/diaspora" component={() => <ProtectedRoute component={DiasporaPage} />} />
-        <Route path="/simulator" component={() => <ProtectedRoute component={SimulatorPage} />} />
+        <Route path="/markets" component={PublicMarketsPage} />
+        <Route path="/rates" component={PublicRatesPage} />
+        <Route path="/research" component={PublicResearchPage} />
+        <Route path="/simulator" component={SimulatorRoute} />
         <Route path="/portfolio" component={() => <ProtectedRoute component={PortfolioPage} />} />
         <Route path="/holdings" component={() => <ProtectedRoute component={HoldingsPage} />} />
         <Route path="/deals" component={() => <ProtectedRoute component={DealsPage} />} />
         <Route path="/alerts" component={() => <ProtectedRoute component={AlertsPage} />} />
         <Route path="/signals" component={() => <ProtectedRoute component={SignalsPage} />} />
-        <Route path="/market-data" component={() => <ProtectedRoute component={MarketDataPage} />} />
-        <Route path="/mm-rates" component={() => <ProtectedRoute component={MmRatesPage} />} />
+        <Route path="/market-data" component={PublicMarketsPage} />
+        <Route path="/mm-rates" component={PublicRatesPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

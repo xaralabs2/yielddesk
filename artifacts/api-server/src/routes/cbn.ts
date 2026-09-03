@@ -6,7 +6,7 @@ import { syncCbnData, syncPolicyRates, syncExchangeRates } from "../lib/cbn-scra
 
 const router: IRouter = Router();
 
-router.get("/cbn/market-data", requireAuth, async (_req, res): Promise<void> => {
+router.get("/cbn/market-data", async (_req, res): Promise<void> => {
   const ntb = await db
     .select()
     .from(cbnMarketDataTable)
@@ -31,7 +31,7 @@ router.get("/cbn/market-data", requireAuth, async (_req, res): Promise<void> => 
   res.json({ ntb, bonds, omo });
 });
 
-router.get("/cbn/rates-summary", requireAuth, async (_req, res): Promise<void> => {
+router.get("/cbn/rates-summary", async (_req, res): Promise<void> => {
   const latestNtb91 = await db
     .select()
     .from(cbnMarketDataTable)
@@ -106,7 +106,7 @@ router.post("/cbn/sync", requireAuth, async (_req, res): Promise<void> => {
   }
 });
 
-router.get("/cbn/policy-rates", requireAuth, async (_req, res): Promise<void> => {
+router.get("/cbn/policy-rates", async (_req, res): Promise<void> => {
   const rates = await db
     .select()
     .from(cbnPolicyRatesTable)
@@ -115,7 +115,7 @@ router.get("/cbn/policy-rates", requireAuth, async (_req, res): Promise<void> =>
   res.json(rates);
 });
 
-router.get("/cbn/exchange-rates", requireAuth, async (_req, res): Promise<void> => {
+router.get("/cbn/exchange-rates", async (_req, res): Promise<void> => {
   const rates = await db
     .select()
     .from(cbnExchangeRatesTable)

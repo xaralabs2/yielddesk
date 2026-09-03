@@ -24,7 +24,10 @@ export default function PublicHomePage() {
       <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">YieldDesk</Link>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1">
+            <Button asChild variant="ghost" className="hidden sm:inline-flex"><Link href="/markets">Markets</Link></Button>
+            <Button asChild variant="ghost" className="hidden sm:inline-flex"><Link href="/rates">Rates</Link></Button>
+            <Button asChild variant="ghost" className="hidden md:inline-flex"><Link href="/research">Research</Link></Button>
             <Button asChild variant="ghost"><Link href="/login">Sign in</Link></Button>
             <Button asChild><Link href="/signup">Create free account</Link></Button>
           </nav>
@@ -42,8 +45,8 @@ export default function PublicHomePage() {
                 YieldDesk helps you discover, understand, compare, simulate and monitor investment information across NGN, USD and GBP markets. You control the assumptions. You make the decisions.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button asChild size="lg"><Link href="/signup">Start comparing <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
-                <Button asChild size="lg" variant="outline"><a href="#how-it-works">See how it works</a></Button>
+                <Button asChild size="lg"><Link href="/markets">Explore freely <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+                <Button asChild size="lg" variant="outline"><Link href="/simulator">Try the simulator</Link></Button>
               </div>
               <p className="mt-5 max-w-2xl text-xs leading-5 text-muted-foreground">
                 YieldDesk provides information, education, comparison and simulation. It does not recommend investments or providers, provide personal investment advice, execute trades or hold customer assets.
@@ -86,7 +89,7 @@ export default function PublicHomePage() {
 
         <section className="mx-auto max-w-4xl px-6 py-20 text-center">
           <h2 className="text-3xl font-bold">Build your own view across markets.</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">Create a free account to save comparisons, assumptions, watchlists, virtual portfolios and monitoring preferences.</p>
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">Browse without an account. Create one only when you want to save comparisons, assumptions, watchlists, virtual portfolios or monitoring preferences.</p>
           <Button asChild size="lg" className="mt-7"><Link href="/signup">Create free account <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
         </section>
       </main>
