@@ -27,7 +27,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { defaultQueryFn } from "@/lib/api-helpers";
 import { setBaseUrl } from "@workspace/api-client-react";
 
-setBaseUrl(import.meta.env.VITE_API_URL || "https://yielddesk-api.vercel.app");
+setBaseUrl(import.meta.env.PROD ? null : import.meta.env.VITE_API_URL || null);
 
 const queryClient = new QueryClient({
   defaultOptions: {
