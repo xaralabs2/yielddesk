@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
+import pg, { type PoolConfig } from "pg";
 import * as schema from "./schema";
 
 const { Pool } = pg;
@@ -11,7 +11,7 @@ if (!databaseUrl) {
   );
 }
 
-function databasePoolConfig(): pg.PoolConfig {
+function databasePoolConfig(): PoolConfig {
   const encodedCa = process.env.DATABASE_CA_CERT_BASE64;
   if (!encodedCa) {
     return { connectionString: databaseUrl };
