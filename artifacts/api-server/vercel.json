@@ -1,32 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/cron/cbn-sync.ts": {
-      "maxDuration": 60
-    },
-    "api/cron/fmdq-sync.ts": {
-      "maxDuration": 60
-    },
-    "api/cron/ngx-sync.ts": {
-      "maxDuration": 60
-    },
     "api/index.mjs": {
       "maxDuration": 60
     }
   },
   "rewrites": [
-    {
-      "source": "/api/cron/cbn-sync",
-      "destination": "/api/cron/cbn-sync"
-    },
-    {
-      "source": "/api/cron/fmdq-sync",
-      "destination": "/api/cron/fmdq-sync"
-    },
-    {
-      "source": "/api/cron/ngx-sync",
-      "destination": "/api/cron/ngx-sync"
-    },
     {
       "source": "/api/:path*",
       "destination": "/api/index"

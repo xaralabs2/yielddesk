@@ -13,6 +13,7 @@ import aiRouter from "./ai";
 import investmentDeskRouter from "./investment-desk";
 import diasporaSimulationRouter from "./diaspora-simulation";
 import ngxRouter from "./ngx";
+import cronRouter from "./cron";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(aiRouter);
 router.use(investmentDeskRouter);
 router.use(diasporaSimulationRouter);
 router.use(ngxRouter);
+router.use(cronRouter);
 
 export default router;
