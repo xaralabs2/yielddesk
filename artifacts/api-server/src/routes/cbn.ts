@@ -1,142 +1,142 @@
 import { Router, type IRouter } from "express";
 import { desc, eq } from "drizzle-orm";
 import { db, cbnMarketDataTable, cbnPolicyRatesTable, cbnExchangeRatesTable } from "@workspace/db";
-import { requireAuth } from "../middlewares/auth";
+import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { syncCbnData, syncPolicyRates, syncExchangeRates } from "../lib/cbn-scraper";
 
 const router: IRouter = Router();
 
+function freshness(observedAt: Date | null) {
+  if (!observedAt) return { status: "unknown" as const, ageDays: null };
+  const ageDays = Math.max(0, Math.floor((Date.now() - observedAt.getTime()) / 86_400_000));
+  const status = ageDays <= 14 ? "current" : ageDays <= 45 ? "aging" : "stale";
+  return { status, ageDays };
+}
+
 router.get("/cbn/market-data", async (_req, res): Promise<void> => {
-  const ntb = await db
-    .select()
-    .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "NTB"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(12);
-
-  const bonds = await db
-    .select()
-    .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "BOND"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(12);
-
-  const omo = await db
-    .select()
-    .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "OMO"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(12);
-
+  const [ntb, bonds, omo] = await Promise.all([
+    db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "NTB")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
+    db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "BOND")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
+    db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "OMO")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(12),
+  ]);
   res.json({ ntb, bonds, omo });
 });
 
-router.get("/cbn/rates-summary", async (_req, res): Promise<void> => {
-  const latestNtb91 = await db
+router.get("/cbn/fixed-income-snapshot", async (_req, res): Promise<void> => {
+  const rows = await db
     .select()
     .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "NTB"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(4);
+    .orderBy(desc(cbnMarketDataTable.auctionDate), desc(cbnMarketDataTable.fetchedAt))
+    .limit(90);
 
-  const latestBond = await db
-    .select()
-    .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "BOND"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(4);
-
-  const latestOmo = await db
-    .select()
-    .from(cbnMarketDataTable)
-    .where(eq(cbnMarketDataTable.securityType, "OMO"))
-    .orderBy(desc(cbnMarketDataTable.auctionDate))
-    .limit(4);
-
-  const ntbByTenor: Record<string, { rate: number; date: string }> = {};
-  for (const r of latestNtb91) {
-    if (r.marginalRate && !ntbByTenor[r.tenor]) {
-      ntbByTenor[r.tenor] = {
-        rate: r.marginalRate,
-        date: r.auctionDate?.toISOString() ?? "",
-      };
-    }
+  const latestByInstrument = new Map<string, typeof rows[number]>();
+  for (const row of rows) {
+    const key = `${row.securityType}:${row.tenor}`;
+    if (!latestByInstrument.has(key)) latestByInstrument.set(key, row);
   }
 
-  const bondByTenor: Record<string, { rate: number; date: string }> = {};
-  for (const r of latestBond) {
-    if (r.marginalRate && !bondByTenor[r.tenor]) {
-      bondByTenor[r.tenor] = {
-        rate: r.marginalRate,
-        date: r.auctionDate?.toISOString() ?? "",
-      };
-    }
-  }
+  const instruments = [...latestByInstrument.values()].map((row) => {
+    const observedAt = row.auctionDate ?? row.fetchedAt;
+    return {
+      securityType: row.securityType,
+      tenor: row.tenor,
+      auctionDate: row.auctionDate?.toISOString() ?? null,
+      maturityDate: row.maturityDate?.toISOString() ?? null,
+      marginalRate: row.marginalRate,
+      trueYield: row.trueYield,
+      amountOffered: row.amountOffered,
+      totalSubscription: row.totalSubscription,
+      totalSuccessful: row.totalSuccessful,
+      subscriptionCoverage:
+        row.amountOffered && row.totalSubscription != null
+          ? row.totalSubscription / row.amountOffered
+          : null,
+      successfulCoverage:
+        row.amountOffered && row.totalSuccessful != null
+          ? row.totalSuccessful / row.amountOffered
+          : null,
+      observedAt: observedAt.toISOString(),
+      freshness: freshness(observedAt),
+      source: row.source,
+      classification: {
+        marketValues: "observed",
+        coverageRatios: "calculated",
+      },
+    };
+  });
 
-  const omoByTenor: Record<string, { rate: number; date: string }> = {};
-  for (const r of latestOmo) {
-    if (r.marginalRate && !omoByTenor[r.tenor]) {
-      omoByTenor[r.tenor] = {
-        rate: r.marginalRate,
-        date: r.auctionDate?.toISOString() ?? "",
-      };
-    }
-  }
+  const groups = {
+    ntb: instruments.filter((item) => item.securityType === "NTB"),
+    bonds: instruments.filter((item) => item.securityType === "BOND"),
+    omo: instruments.filter((item) => item.securityType === "OMO"),
+  };
 
   res.json({
-    ntb: ntbByTenor,
-    bonds: bondByTenor,
-    omo: omoByTenor,
-    lastUpdated: latestNtb91[0]?.fetchedAt?.toISOString() ?? null,
+    market: "NG",
+    currency: "NGN",
+    generatedAt: new Date().toISOString(),
+    provenance: {
+      publisher: "Central Bank of Nigeria",
+      sourceUrl: "https://www.cbn.gov.ng/rates/GovtSecurities.html",
+      methodology: "Latest stored observation for each security type and tenor. No missing value is estimated.",
+    },
+    groups,
   });
 });
 
-router.post("/cbn/sync", requireAuth, async (_req, res): Promise<void> => {
+router.get("/cbn/rates-summary", async (_req, res): Promise<void> => {
+  const [latestNtb, latestBond, latestOmo] = await Promise.all([
+    db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "NTB")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(30),
+    db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "BOND")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(30),
+    db.select().from(cbnMarketDataTable).where(eq(cbnMarketDataTable.securityType, "OMO")).orderBy(desc(cbnMarketDataTable.auctionDate)).limit(30),
+  ]);
+
+  const byTenor = (records: typeof latestNtb) => {
+    const result: Record<string, { rate: number; date: string }> = {};
+    for (const row of records) {
+      if (row.marginalRate != null && !result[row.tenor]) {
+        result[row.tenor] = { rate: row.marginalRate, date: row.auctionDate?.toISOString() ?? "" };
+      }
+    }
+    return result;
+  };
+
+  res.json({
+    ntb: byTenor(latestNtb),
+    bonds: byTenor(latestBond),
+    omo: byTenor(latestOmo),
+    lastUpdated: latestNtb[0]?.fetchedAt?.toISOString() ?? null,
+  });
+});
+
+router.post("/cbn/sync", requireAuth, requireAdmin, async (_req, res): Promise<void> => {
   try {
     const result = await syncCbnData();
-    res.json({
-      success: true,
-      ...result,
-    });
+    res.json({ success: true, ...result });
   } catch (err: any) {
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
 router.get("/cbn/policy-rates", async (_req, res): Promise<void> => {
-  const rates = await db
-    .select()
-    .from(cbnPolicyRatesTable)
-    .orderBy(desc(cbnPolicyRatesTable.year), desc(cbnPolicyRatesTable.month))
-    .limit(24);
+  const rates = await db.select().from(cbnPolicyRatesTable).orderBy(desc(cbnPolicyRatesTable.year), desc(cbnPolicyRatesTable.month)).limit(24);
   res.json(rates);
 });
 
 router.get("/cbn/exchange-rates", async (_req, res): Promise<void> => {
-  const rates = await db
-    .select()
-    .from(cbnExchangeRatesTable)
-    .orderBy(desc(cbnExchangeRatesTable.rateDate))
-    .limit(50);
-
+  const rates = await db.select().from(cbnExchangeRatesTable).orderBy(desc(cbnExchangeRatesTable.rateDate)).limit(50);
   const grouped: Record<string, typeof rates> = {};
-  for (const r of rates) {
-    if (!grouped[r.currency]) grouped[r.currency] = [];
-    grouped[r.currency].push(r);
+  for (const row of rates) {
+    if (!grouped[row.currency]) grouped[row.currency] = [];
+    grouped[row.currency].push(row);
   }
-  res.json({ rates: grouped, latest: rates.slice(0, 6) });
+  const latest = Object.values(grouped).map((items) => items[0]).filter(Boolean);
+  res.json({ rates: grouped, latest });
 });
 
-router.post("/cbn/sync-all", requireAuth, async (_req, res): Promise<void> => {
+router.post("/cbn/sync-all", requireAuth, requireAdmin, async (_req, res): Promise<void> => {
   try {
-    const [market, policy, fx] = await Promise.all([
-      syncCbnData(),
-      syncPolicyRates(),
-      syncExchangeRates(),
-    ]);
+    const [market, policy, fx] = await Promise.all([syncCbnData(), syncPolicyRates(), syncExchangeRates()]);
     res.json({ success: true, market, policy, fx });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
