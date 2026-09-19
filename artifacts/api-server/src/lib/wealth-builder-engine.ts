@@ -75,6 +75,10 @@ export const WEALTH_MODELS: Record<WealthStrategy, {
 };
 
 export function buildWealthPlan(input: WealthBuilderInput) {
+  if (!Number.isSafeInteger(input.totalSpendNgn)) {
+    throw new Error("totalSpendNgn must be a whole-naira amount");
+  }
+
   const model = WEALTH_MODELS[input.strategy];
   let assigned = 0;
   const allocations: WealthAllocation[] = model.allocations.map((allocation, index) => {
