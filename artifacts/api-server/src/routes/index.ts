@@ -14,6 +14,7 @@ import investmentDeskRouter from "./investment-desk";
 import diasporaSimulationRouter from "./diaspora-simulation";
 import ngxRouter from "./ngx";
 import cronRouter from "./cron";
+import wealthBuilderRouter from "./wealth-builder";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(investmentDeskRouter);
 router.use(diasporaSimulationRouter);
 router.use(ngxRouter);
 router.use(cronRouter);
+router.use(wealthBuilderRouter);
 
 export default router;
