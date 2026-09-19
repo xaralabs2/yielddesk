@@ -186,9 +186,9 @@ export default function WealthBuilderPage() {
                 <Input
                   id="wealth-budget"
                   className="pl-8 text-lg"
-                  inputMode="decimal"
+                  inputMode="numeric"
                   value={totalSpend}
-                  onChange={(event) => setTotalSpend(event.target.value.replace(/[^0-9.]/g, ""))}
+                  onChange={(event) => setTotalSpend(event.target.value.replace(/[^0-9]/g, ""))}
                   placeholder="5000000"
                   data-testid="wealth-budget"
                 />
