@@ -537,3 +537,103 @@ export const GetAdminStatsResponse = zod.object({
   totalSignals: zod.number(),
   activeUsers: zod.number(),
 });
+
+/**
+ * @summary Preview a user-selected hypothetical wealth model
+ */
+export const previewWealthBuilderPlanBodyGoalMin = 3;
+export const previewWealthBuilderPlanBodyGoalMax = 500;
+
+export const previewWealthBuilderPlanBodyTotalSpendNgnMin = 10000;
+export const previewWealthBuilderPlanBodyTotalSpendNgnMax = 1000000000000000;
+
+export const PreviewWealthBuilderPlanBody = zod.object({
+  goal: zod
+    .string()
+    .min(previewWealthBuilderPlanBodyGoalMin)
+    .max(previewWealthBuilderPlanBodyGoalMax),
+  totalSpendNgn: zod
+    .number()
+    .min(previewWealthBuilderPlanBodyTotalSpendNgnMin)
+    .max(previewWealthBuilderPlanBodyTotalSpendNgnMax),
+  horizon: zod.enum(["SHORT", "MEDIUM", "LONG"]),
+  strategy: zod.enum(["PRESERVE", "BALANCED", "GROWTH", "INCOME"]),
+});
+
+export const PreviewWealthBuilderPlanResponse = zod.object({
+  goal: zod.string(),
+  totalSpendNgn: zod.number(),
+  horizon: zod.string(),
+  strategy: zod.string(),
+  modelName: zod.string(),
+  modelSummary: zod.string(),
+  methodologyVersion: zod.string(),
+  allocations: zod.array(
+    zod.object({
+      key: zod.string(),
+      label: zod.string(),
+      percentage: zod.number(),
+      amountNgn: zod.number(),
+      purpose: zod.string(),
+    }),
+  ),
+  assumptions: zod.array(zod.string()),
+  limitation: zod.string(),
+  simulated: zod.boolean(),
+});
+
+/**
+ * @summary Return the authenticated user's latest saved hypothetical plan
+ */
+export const GetLatestWealthBuilderPlanResponse = zod.union([
+  zod.object({
+    id: zod.number(),
+    userId: zod.number(),
+    goal: zod.string(),
+    totalSpendNgn: zod.number(),
+    horizon: zod.string(),
+    strategy: zod.string(),
+    status: zod.enum(["CONFIRMED"]),
+    allocationsJson: zod.array(
+      zod.object({
+        key: zod.string(),
+        label: zod.string(),
+        percentage: zod.number(),
+        amountNgn: zod.number(),
+        purpose: zod.string(),
+      }),
+    ),
+    methodologyVersion: zod.string(),
+    limitationText: zod.string(),
+    simulated: zod.boolean().optional(),
+  }),
+  zod.null(),
+]);
+
+/**
+ * @summary Save a confirmed hypothetical wealth model
+ */
+export const saveWealthBuilderPlanBodyOneGoalMin = 3;
+export const saveWealthBuilderPlanBodyOneGoalMax = 500;
+
+export const saveWealthBuilderPlanBodyOneTotalSpendNgnMin = 10000;
+export const saveWealthBuilderPlanBodyOneTotalSpendNgnMax = 1000000000000000;
+
+export const SaveWealthBuilderPlanBody = zod
+  .object({
+    goal: zod
+      .string()
+      .min(saveWealthBuilderPlanBodyOneGoalMin)
+      .max(saveWealthBuilderPlanBodyOneGoalMax),
+    totalSpendNgn: zod
+      .number()
+      .min(saveWealthBuilderPlanBodyOneTotalSpendNgnMin)
+      .max(saveWealthBuilderPlanBodyOneTotalSpendNgnMax),
+    horizon: zod.enum(["SHORT", "MEDIUM", "LONG"]),
+    strategy: zod.enum(["PRESERVE", "BALANCED", "GROWTH", "INCOME"]),
+  })
+  .and(
+    zod.object({
+      confirmed: zod.boolean(),
+    }),
+  );
