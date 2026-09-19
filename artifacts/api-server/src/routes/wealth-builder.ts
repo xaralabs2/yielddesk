@@ -26,8 +26,14 @@ function parseInput(body: any) {
   if (goal.length < 3 || goal.length > 500) {
     return { error: "goal must be between 3 and 500 characters" } as const;
   }
-  if (!Number.isFinite(totalSpendNgn) || totalSpendNgn < 10_000 || totalSpendNgn > 1_000_000_000_000_000) {
-    return { error: "totalSpendNgn must be between ₦10,000 and ₦1 quadrillion" } as const;
+  if (
+    !Number.isSafeInteger(totalSpendNgn) ||
+    totalSpendNgn < 10_000 ||
+    totalSpendNgn > 1_000_000_000_000_000
+  ) {
+    return {
+      error: "totalSpendNgn must be a whole-naira amount between ₦10,000 and ₦1 quadrillion",
+    } as const;
   }
   if (!HORIZONS.has(horizon)) {
     return { error: "horizon must be SHORT, MEDIUM or LONG" } as const;
