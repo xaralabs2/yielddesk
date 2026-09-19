@@ -1,4 +1,6 @@
-import { enforceYieldDeskAiPolicy } from "../../artifacts/api-server/src/lib/ai-policy";
+import aiPolicyModule from "../../artifacts/api-server/src/lib/ai-policy";
+
+const { enforceYieldDeskAiPolicy } = aiPolicyModule;
 
 if (typeof enforceYieldDeskAiPolicy !== "function") {
   throw new Error("YieldDesk AI policy function is unavailable");

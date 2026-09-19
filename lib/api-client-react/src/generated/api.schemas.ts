@@ -5,6 +5,84 @@
  * YieldDesk Capital Allocation API
  * OpenAPI spec version: 0.1.0
  */
+export type WealthBuilderInputHorizon =
+  (typeof WealthBuilderInputHorizon)[keyof typeof WealthBuilderInputHorizon];
+
+export const WealthBuilderInputHorizon = {
+  SHORT: "SHORT",
+  MEDIUM: "MEDIUM",
+  LONG: "LONG",
+} as const;
+
+export type WealthBuilderInputStrategy =
+  (typeof WealthBuilderInputStrategy)[keyof typeof WealthBuilderInputStrategy];
+
+export const WealthBuilderInputStrategy = {
+  PRESERVE: "PRESERVE",
+  BALANCED: "BALANCED",
+  GROWTH: "GROWTH",
+  INCOME: "INCOME",
+} as const;
+
+export interface WealthBuilderInput {
+  /**
+   * @minLength 3
+   * @maxLength 500
+   */
+  goal: string;
+  /**
+   * @minimum 10000
+   * @maximum 1000000000000000
+   */
+  totalSpendNgn: number;
+  horizon: WealthBuilderInputHorizon;
+  strategy: WealthBuilderInputStrategy;
+}
+
+export interface WealthAllocation {
+  key: string;
+  label: string;
+  percentage: number;
+  amountNgn: number;
+  purpose: string;
+}
+
+export interface WealthBuilderPreview {
+  goal: string;
+  totalSpendNgn: number;
+  horizon: string;
+  strategy: string;
+  modelName: string;
+  modelSummary: string;
+  methodologyVersion: string;
+  allocations: WealthAllocation[];
+  assumptions: string[];
+  limitation: string;
+  simulated: true;
+}
+
+export type WealthBuilderSavedPlanStatus =
+  (typeof WealthBuilderSavedPlanStatus)[keyof typeof WealthBuilderSavedPlanStatus];
+
+export const WealthBuilderSavedPlanStatus = {
+  CONFIRMED: "CONFIRMED",
+} as const;
+
+export interface WealthBuilderSavedPlan {
+  id: number;
+  userId: number;
+  goal: string;
+  totalSpendNgn: number;
+  horizon: string;
+  strategy: string;
+  status: WealthBuilderSavedPlanStatus;
+  allocationsJson: WealthAllocation[];
+  methodologyVersion: string;
+  limitationText: string;
+  simulated?: boolean;
+  [key: string]: unknown;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -389,4 +467,8 @@ export type ListSignalsParams = {
 
 export type ListAlertsParams = {
   unreadOnly?: boolean;
+};
+
+export type SaveWealthBuilderPlanBody = WealthBuilderInput & {
+  confirmed: true;
 };

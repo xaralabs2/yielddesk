@@ -11,3 +11,4 @@ export * from "./diaspora-profiles";
 export * from "./simulation";
 export * from "./ngx-market-data";
 export * from "./market-intelligence";
+export * from "./wealth-builder";

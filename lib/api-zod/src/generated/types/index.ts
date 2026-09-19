@@ -42,6 +42,7 @@ export type { LoginBody as LoginBodyType } from "./loginBody";
 export * from "./policyRate";
 export * from "./portfolioAnalytics";
 export * from "./portfolioSummary";
+export type { SaveWealthBuilderPlanBody as SaveWealthBuilderPlanBodyType } from "./saveWealthBuilderPlanBody";
 export * from "./signal";
 export type { SignupBody as SignupBodyType } from "./signupBody";
 export * from "./signupBodyRole";
@@ -55,3 +56,10 @@ export type { UpdateHoldingBody as UpdateHoldingBodyType } from "./updateHolding
 export * from "./updateHoldingBodyStatus";
 export * from "./updateHoldingBodyType";
 export * from "./user";
+export * from "./wealthAllocation";
+export * from "./wealthBuilderInput";
+export * from "./wealthBuilderInputHorizon";
+export * from "./wealthBuilderInputStrategy";
+export * from "./wealthBuilderPreview";
+export * from "./wealthBuilderSavedPlan";
+export * from "./wealthBuilderSavedPlanStatus";

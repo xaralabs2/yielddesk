@@ -12,6 +12,7 @@ import {
   Moon,
   Monitor,
   Sun,
+  Sparkles,
   WalletCards,
 } from "lucide-react";
 import { useGetAlertCount, getGetAlertCountQueryKey } from "@workspace/api-client-react";
@@ -68,6 +69,7 @@ export function Sidebar() {
     {
       label: "Practice & track",
       items: [
+        { href: "/wealth-builder", label: "Wealth Builder", icon: Sparkles },
         { href: "/simulator", label: "Simulate", icon: FlaskConical },
         { href: "/portfolio", label: "Virtual portfolios", icon: BriefcaseBusiness },
         { href: "/holdings", label: "Recorded holdings", icon: WalletCards },

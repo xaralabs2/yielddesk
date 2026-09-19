@@ -24,6 +24,7 @@ import NigeriaPage from "@/pages/nigeria";
 import PublicRatesPage from "@/pages/public-rates";
 import PublicResearchPage from "@/pages/public-research";
 import GuestSimulatorPage from "@/pages/guest-simulator";
+import WealthBuilderPage from "@/pages/wealth-builder";
 import { ThemeProvider } from "@/lib/theme";
 import { defaultQueryFn } from "@/lib/api-helpers";
 import { setBaseUrl } from "@workspace/api-client-react";
@@ -81,6 +82,7 @@ function AppRouter() {
         <Route path="/rates" component={PublicRatesPage} />
         <Route path="/research" component={PublicResearchPage} />
         <Route path="/simulator" component={SimulatorRoute} />
+        <Route path="/wealth-builder" component={() => <ProtectedRoute component={WealthBuilderPage} />} />
         <Route path="/portfolio" component={() => <ProtectedRoute component={PortfolioPage} />} />
         <Route path="/holdings" component={() => <ProtectedRoute component={HoldingsPage} />} />
         <Route path="/deals" component={() => <ProtectedRoute component={DealsPage} />} />
