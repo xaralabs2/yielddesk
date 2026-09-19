@@ -690,8 +690,9 @@ components:
           minLength: 3
           maxLength: 500
         totalSpendNgn:
-          type: number
+          type: integer
           minimum: 10000
+          maximum: 1000000000000000
         horizon:
           type: string
           enum: [SHORT, MEDIUM, LONG]
