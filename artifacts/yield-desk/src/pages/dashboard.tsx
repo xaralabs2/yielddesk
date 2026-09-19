@@ -2,7 +2,7 @@ import { useGetDashboardSummary, useListMaturingHoldings } from "@workspace/api-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, AlertTriangle, DollarSign, PieChart, Activity, Clock, ArrowRight } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, DollarSign, PieChart, Activity, Clock, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 
 function formatCurrency(n: number) {
@@ -65,14 +65,24 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Capital allocation overview</p>
         </div>
-        {unreadAlerts > 0 && (
-          <Link href="/alerts">
-            <Badge variant="destructive" className="cursor-pointer gap-1" data-testid="badge-unread-alerts">
-              <AlertTriangle className="w-3 h-3" />
-              {unreadAlerts} unread alert{unreadAlerts > 1 ? "s" : ""}
-            </Badge>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Link
+            href="/wealth-builder"
+            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            data-testid="build-wealth-portfolio"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            Build my wealth portfolio
           </Link>
-        )}
+          {unreadAlerts > 0 && (
+            <Link href="/alerts">
+              <Badge variant="destructive" className="cursor-pointer gap-1" data-testid="badge-unread-alerts">
+                <AlertTriangle className="w-3 h-3" />
+                {unreadAlerts} unread alert{unreadAlerts > 1 ? "s" : ""}
+              </Badge>
+            </Link>
+          )}
+        </div>
       </div>
 
       <Card className="border-l-4 border-l-primary" data-testid="card-decision">
