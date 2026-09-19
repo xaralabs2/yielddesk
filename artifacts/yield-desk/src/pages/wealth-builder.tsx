@@ -76,18 +76,23 @@ export default function WealthBuilderPage() {
   const [step, setStep] = useState(1);
   const [goal, setGoal] = useState("");
   const [totalSpend, setTotalSpend] = useState("");
-  const [horizon, setHorizon] = useState<Horizon>("LONG");
-  const [strategy, setStrategy] = useState<Strategy>("GROWTH");
+  const [horizon, setHorizon] = useState<Horizon | null>(null);
+  const [strategy, setStrategy] = useState<Strategy | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
 
   const requestBody = useMemo(
-    () => ({ goal: goal.trim(), totalSpendNgn: Number(totalSpend), horizon, strategy }),
+    () =>
+      horizon && strategy
+        ? { goal: goal.trim(), totalSpendNgn: Number(totalSpend), horizon, strategy }
+        : null,
     [goal, totalSpend, horizon, strategy],
   );
 
   const previewPlan = useMutation({
-    mutationFn: async () =>
-      (await apiRequest("POST", "/api/wealth-builder/preview", requestBody)).json() as Promise<Preview>,
+    mutationFn: async () => {
+      if (!requestBody) throw new Error("Choose a time horizon and model to continue.");
+      return (await apiRequest("POST", "/api/wealth-builder/preview", requestBody)).json() as Promise<Preview>;
+    },
     onSuccess: (result) => {
       setPreview(result);
       setStep(3);
@@ -95,11 +100,13 @@ export default function WealthBuilderPage() {
   });
 
   const savePlan = useMutation({
-    mutationFn: async () =>
-      (await apiRequest("POST", "/api/wealth-builder/plans", {
+    mutationFn: async () => {
+      if (!requestBody) throw new Error("Choose a time horizon and model to continue.");
+      return (await apiRequest("POST", "/api/wealth-builder/plans", {
         ...requestBody,
         confirmed: true,
-      })).json(),
+      })).json();
+    },
     onSuccess: () => setStep(4),
   });
 
@@ -109,8 +116,8 @@ export default function WealthBuilderPage() {
     setStep(1);
     setGoal("");
     setTotalSpend("");
-    setHorizon("LONG");
-    setStrategy("GROWTH");
+    setHorizon(null);
+    setStrategy(null);
     setPreview(null);
     previewPlan.reset();
     savePlan.reset();
@@ -257,7 +264,10 @@ export default function WealthBuilderPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <Button onClick={() => previewPlan.mutate()} disabled={previewPlan.isPending}>
+              <Button
+                onClick={() => previewPlan.mutate()}
+                disabled={previewPlan.isPending || !horizon || !strategy}
+              >
                 {previewPlan.isPending ? "Building model…" : "Build hypothetical portfolio"}
                 {!previewPlan.isPending && <Sparkles className="ml-2 h-4 w-4" />}
               </Button>
