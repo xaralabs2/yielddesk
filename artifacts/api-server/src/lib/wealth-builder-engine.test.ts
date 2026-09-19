@@ -11,6 +11,19 @@ test("every wealth model totals 100 percent", () => {
   }
 });
 
+test("fractional-naira budgets are rejected", () => {
+  assert.throws(
+    () =>
+      buildWealthPlan({
+        goal: "Build long-term wealth",
+        totalSpendNgn: 10_000.5,
+        horizon: "LONG",
+        strategy: "GROWTH",
+      }),
+    /whole-naira/i,
+  );
+});
+
 test("allocation amounts reconcile exactly to the user-entered budget", () => {
   for (const strategy of Object.keys(WEALTH_MODELS) as WealthStrategy[]) {
     const plan = buildWealthPlan({
