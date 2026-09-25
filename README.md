@@ -144,7 +144,7 @@ The target **Market Data Fabric** normalizes observations and preserves source, 
 - **API contracts/codegen:** OpenAPI + Orval
 - **Authentication:** JWT + bcrypt
 - **Build:** esbuild
-- **Deployment:** Vercel
+- **Deployment:** Cloudflare Workers & Pages (production target; migration/build reconciliation in progress)
 - **AI:** Xara AI OS / existing YieldDesk AI integration during transition
 
 ## Monorepo Structure
@@ -167,14 +167,15 @@ yielddesk/
 └── pnpm-workspace.yaml
 ```
 
-## Vercel Deployment
+## Cloudflare Production Deployment
 
-The monorepo is designed as two Vercel projects connected to the same GitHub repository:
+The current production target is **Cloudflare Workers & Pages**, connected to `xaralabs2/yielddesk` on `main`.
 
-- `yielddesk-web` → `artifacts/yield-desk`
-- `yielddesk-api` → `artifacts/api-server`
+Observed 2026-09-25 configuration: root `/`; build `pnpm run build`; deploy `npx wrangler deploy`; Node 24.18.0; pnpm 10.11.1.
 
-The API includes the serverless entry point and scheduled CBN synchronization. See `docs/vercel-deployment.md`.
+**Current status:** latest observed Cloudflare production build `b01718fc-ef03-4fd5-9deb-d13650cb7a28` failed during dependency installation, before application compilation, with `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`. The pnpm overrides configuration and lockfile must be reconciled. Frozen-lockfile reproducibility should remain enabled.
+
+The former Vercel web/API design is historical/reference architecture; see `docs/vercel-deployment.md`.
 
 ## V2 Build Path
 
