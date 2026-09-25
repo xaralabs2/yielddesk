@@ -1,4 +1,10 @@
-# YieldDesk on Vercel
+# YieldDesk on Vercel — Historical / Reference Architecture
+
+> **STATUS: HISTORICAL / NON-CANONICAL AS OF 2026-09-25.**
+>
+> Current production target: **Cloudflare Workers & Pages**. See [cloudflare-deployment.md](cloudflare-deployment.md).
+>
+> Retained only to preserve the former Vercel architecture. Automation must not treat this file as the current production deployment instruction.
 
 Deploy the monorepo as two Vercel projects connected to the same GitHub repository.
 
