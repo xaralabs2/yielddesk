@@ -8,18 +8,20 @@ YieldDesk will evolve into a personalized investment-intelligence platform. The 
 
 > Market intelligence tells YieldDesk what is happening. Portfolio intelligence tells YieldDesk what the user owns. Investor intelligence tells YieldDesk who the user is. Decision intelligence combines all three.
 
-The **Personal Profile Agent**, backed by an **Investor Intelligence Profile**, is foundational for every registered user.
+The **Personal AI Agent** is the neutral, always-on user-context and continuity layer for every registered user across everything they do in YieldDesk. The **Investor Intelligence Profile** is one domain context managed by that agent, not the agent itself.
 
 ## Required layers
 1. Market Intelligence.
-2. Personal Profile Agent.
+2. Personal AI Agent.
 3. Portfolio Intelligence.
 4. Research & Analytics.
 5. Decision Intelligence.
 6. Learning & Feedback.
 
-## Personal Profile Agent
-Owns/interprets goals, horizon, risk, IPS, preferences, constraints, position/sector limits, investment classifications, behavioral strengths/weaknesses, historical decision patterns and approved exceptions.
+## Personal AI Agent
+The agent is neutral: it does not exist only for investing recommendations and does not decide for the user. It carries relevant user context across exploration, comparison, simulation, watchlists, monitoring, portfolio work, research, wealth planning, decision journaling, alerts and future YieldDesk capabilities.
+
+It owns/interprets goals, horizon, risk, IPS, preferences, constraints, position/sector limits, investment classifications, behavioral strengths/weaknesses, historical decision patterns and approved exceptions.
 
 Profile state has three distinct layers:
 - **Declared** — user-provided.
