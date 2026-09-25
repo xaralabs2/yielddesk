@@ -144,7 +144,8 @@ The target **Market Data Fabric** normalizes observations and preserves source, 
 - **API contracts/codegen:** OpenAPI + Orval
 - **Authentication:** JWT + bcrypt
 - **Build:** esbuild
-- **Deployment:** Cloudflare Workers & Pages (production target; migration/build reconciliation in progress)
+- **Application deployment:** Vercel (frontend/web application and API)
+- **Edge infrastructure:** Cloudflare (domain, DNS, proxy/CDN, WAF, DDoS protection and related edge services)
 - **AI:** Xara AI OS / existing YieldDesk AI integration during transition
 
 ## Monorepo Structure
@@ -167,15 +168,16 @@ yielddesk/
 └── pnpm-workspace.yaml
 ```
 
-## Cloudflare Production Deployment
+## Production Deployment
 
-The current production target is **Cloudflare Workers & Pages**, connected to `xaralabs2/yielddesk` on `main`.
+YieldDesk uses a layered production architecture:
 
-Observed 2026-09-25 configuration: root `/`; build `pnpm run build`; deploy `npx wrangler deploy`; Node 24.18.0; pnpm 10.11.1.
+- **Cloudflare:** domain, DNS, edge/proxy/CDN, WAF, DDoS protection and related edge capabilities.
+- **Vercel:** application hosting and deployment for the YieldDesk frontend/web application and API.
 
-**Current status:** latest observed Cloudflare production build `b01718fc-ef03-4fd5-9deb-d13650cb7a28` failed during dependency installation, before application compilation, with `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`. The pnpm overrides configuration and lockfile must be reconciled. Frozen-lockfile reproducibility should remain enabled.
+The Vercel projects remain the canonical application deployment path. See `docs/vercel-deployment.md`.
 
-The former Vercel web/API design is historical/reference architecture; see `docs/vercel-deployment.md`.
+Cloudflare Worker/Pages build experiments or configuration do not replace Vercel as the YieldDesk application hosting platform. See `docs/cloudflare-deployment.md` for the Cloudflare infrastructure boundary.
 
 ## V2 Build Path
 
