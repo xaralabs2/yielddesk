@@ -1,49 +1,34 @@
-# YieldDesk Production Deployment — Cloudflare Workers & Pages
+# YieldDesk — Cloudflare Infrastructure Boundary
 
-**Status:** Canonical production deployment document
+**Status:** Canonical Cloudflare infrastructure document
 **Updated:** 2026-09-25
 
-## Current production target
-YieldDesk production targets **Cloudflare Workers & Pages**.
+## Role of Cloudflare
 
-Observed configuration:
-- Service: `yielddesk`
-- Environment: Production
-- Repository: `xaralabs2/yielddesk`
-- Branch: `main`
-- Root: `/`
-- Build: `pnpm run build`
-- Deploy: `npx wrangler deploy`
-- Build token: configured in Cloudflare
-- Build variables: none shown
-- Detected toolchain: Node.js 24.18.0 / pnpm 10.11.1
-- Worker Previews: available for branches and pull requests.
+Cloudflare is YieldDesk's **domain, DNS, edge and security infrastructure layer**. It is not the canonical application-hosting platform for the YieldDesk frontend or API.
 
-## Current build state
-Latest observed build:
-- ID: `b01718fc-ef03-4fd5-9deb-d13650cb7a28`
-- Source: `main`
-- Trigger: manual
-- Result: **FAILED**
-- Stage: dependency installation, before application compilation
-- Error: `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`
+Cloudflare responsibilities include:
+- Domain and DNS management
+- Edge proxy/CDN capabilities where enabled
+- WAF and edge security controls
+- DDoS protection
+- TLS and related edge services
+- Other explicitly configured Cloudflare network/edge capabilities
 
-Cloudflare uses `pnpm install --frozen-lockfile`; repository overrides and `pnpm-lock.yaml` are inconsistent.
+## Application hosting
 
-## Required remediation
-1. Reconcile dependency/override configuration.
-2. Regenerate `pnpm-lock.yaml` with the intended pnpm version.
-3. Review the diff.
-4. Run `pnpm run build`.
-5. Commit legitimate config/lockfile changes.
-6. Push through the approved engineering path.
-7. Retry Cloudflare production build.
-8. Verify deployment and health.
+YieldDesk application hosting and deployment remain on **Vercel**:
+- Frontend/web application: Vercel
+- API/backend: Vercel
 
-Do **not** make `pnpm install --no-frozen-lockfile` the permanent production workaround.
+See [vercel-deployment.md](vercel-deployment.md) for the canonical application deployment architecture.
 
-## Historical deployment
-The former two-project Vercel design (`yielddesk-web` and `yielddesk-api`) is historical/reference architecture. See `docs/vercel-deployment.md`.
+## Cloudflare Workers / Pages
+
+A Cloudflare Worker/Pages service or build configuration may exist for YieldDesk, including repository integration and experimental or transitional deployment work. Its existence does **not** make Cloudflare Workers/Pages the canonical YieldDesk application hosting platform.
+
+Any future decision to move application workloads from Vercel to Cloudflare Workers/Pages requires an explicit architecture decision. It must not be inferred from DNS ownership, edge configuration, a connected Git repository, or a Cloudflare build.
 
 ## Security
+
 Keep database credentials, secrets, market-data keys, AI keys and brokerage credentials outside source control and client-visible variables.
