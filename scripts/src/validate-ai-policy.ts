@@ -1,6 +1,4 @@
-import aiPolicyModule from "../../artifacts/api-server/src/lib/ai-policy";
-
-const { enforceYieldDeskAiPolicy } = aiPolicyModule;
+import { enforceYieldDeskAiPolicy } from "../../artifacts/api-server/src/lib/ai-policy";
 
 if (typeof enforceYieldDeskAiPolicy !== "function") {
   throw new Error("YieldDesk AI policy function is unavailable");
@@ -34,3 +32,4 @@ for (const text of allowed) {
 }
 
 console.log(`AI policy validation passed: ${blocked.length} blocked, ${allowed.length} allowed`);
+
