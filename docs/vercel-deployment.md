@@ -1,10 +1,10 @@
-# YieldDesk on Vercel — Historical / Reference Architecture
+# YieldDesk on Vercel — Canonical Application Deployment
 
-> **STATUS: HISTORICAL / NON-CANONICAL AS OF 2026-09-25.**
+> **STATUS: CURRENT / CANONICAL APPLICATION HOSTING.**
 >
-> Current production target: **Cloudflare Workers & Pages**. See [cloudflare-deployment.md](cloudflare-deployment.md).
+> Cloudflare provides YieldDesk's domain, DNS, edge, WAF, DDoS protection and related network/edge services. Vercel remains the application hosting and deployment platform for the YieldDesk frontend/web application and API.
 >
-> Retained only to preserve the former Vercel architecture. Automation must not treat this file as the current production deployment instruction.
+> See [cloudflare-deployment.md](cloudflare-deployment.md) for the Cloudflare infrastructure boundary.
 
 Deploy the monorepo as two Vercel projects connected to the same GitHub repository.
 
