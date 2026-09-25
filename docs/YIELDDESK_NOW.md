@@ -34,7 +34,7 @@ YieldDesk is not a stockbroker, custodian, or trade-execution platform. Real inv
 | CBN sync | Scheduled CBN synchronization architecture |
 | FX intelligence | FX-adjusted performance direction and data model foundation |
 | Real-estate intelligence | Property/SPV presentation and comparison surface |
-| Deployment | Cloudflare Workers & Pages is the current production target. Latest observed build on 2026-09-25 failed during dependency installation because pnpm overrides and lockfile configuration are out of sync; application compilation did not begin. |
+| Deployment | Layered production architecture: Cloudflare provides domain/DNS/edge/WAF/DDoS services; Vercel hosts and deploys the YieldDesk frontend/web application and API. |
 | Core stack | pnpm, Node 24, TypeScript 5.9, React 19, Vite, Tailwind, shadcn/ui, Wouter, TanStack Query, Express 5, PostgreSQL, Drizzle, Zod, OpenAPI/Orval |
 | AI platform | YieldDesk domain intelligence on top of Xara AI OS direction |
 
