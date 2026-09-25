@@ -1,6 +1,6 @@
 # YieldDesk — Available Today
 
-_Last updated: 2026-08-26_
+_Last updated: 2026-09-25_
 
 This document is the canonical current-state view of YieldDesk. It separates capabilities that exist today from future-state design so product and engineering teams do not confuse vision with production reality.
 
@@ -34,7 +34,7 @@ YieldDesk is not a stockbroker, custodian, or trade-execution platform. Real inv
 | CBN sync | Scheduled CBN synchronization architecture |
 | FX intelligence | FX-adjusted performance direction and data model foundation |
 | Real-estate intelligence | Property/SPV presentation and comparison surface |
-| Deployment | Vercel web + API architecture |
+| Deployment | Cloudflare Workers & Pages is the current production target. Latest observed build on 2026-09-25 failed during dependency installation because pnpm overrides and lockfile configuration are out of sync; application compilation did not begin. |
 | Core stack | pnpm, Node 24, TypeScript 5.9, React 19, Vite, Tailwind, shadcn/ui, Wouter, TanStack Query, Express 5, PostgreSQL, Drizzle, Zod, OpenAPI/Orval |
 | AI platform | YieldDesk domain intelligence on top of Xara AI OS direction |
 
